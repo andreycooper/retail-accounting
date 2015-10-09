@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Retail Accounting</string>
+    <string name="hello_world">Hello world</string>
+
+    <string name="title_add_phone">Add phone</string>
+
+    <string name="hint_brand">Brand</string>
+    <string name="hint_model">Model</string>
+
+</resources>
