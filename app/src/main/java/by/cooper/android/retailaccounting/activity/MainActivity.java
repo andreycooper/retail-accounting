@@ -1,8 +1,10 @@
-package by.cooper.android.retailaccounting;
+package by.cooper.android.retailaccounting.activity;
 
-import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+
+import by.cooper.android.retailaccounting.R;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -10,12 +12,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        startActivity(new Intent(this, LoginActivity.class));
+        finish();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, AddPhoneFragment.newInstance(null));
-        transaction.addToBackStack(null);
-        transaction.commit();
     }
 }

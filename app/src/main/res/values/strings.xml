@@ -2,9 +2,36 @@
     <string name="app_name">Retail Accounting</string>
     <string name="hello_world">Hello world</string>
 
-    <string name="title_add_phone">Add phone</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_done">Done</string>
 
+    <!-- Strings related to Add/Edit phone -->
+    <string name="title_add_phone">Add phone</string>
+    <string name="title_edit_phone">Edit phone</string>
     <string name="hint_brand">Brand</string>
     <string name="hint_model">Model</string>
+    <string name="hint_imei">IMEI</string>
+    <string name="label_receive_date">Receive date</string>
+    <string name="label_sold_date">Sold date</string>
+    <string name="label_not_sold">Not sold yet</string>
+
+    <string name="title_activity_login">Sign in</string>
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+
+    <!-- Rationale for asking for Contacts -->
+    <string name="contacts_permission_rationale">Contacts access is needed in order to retrieve your email address.</string>
+    <string name="mandatory_field">Mandatory field!</string>
+    <string name="invalid_email">Please provide a valid email address!</string>
 
 </resources>

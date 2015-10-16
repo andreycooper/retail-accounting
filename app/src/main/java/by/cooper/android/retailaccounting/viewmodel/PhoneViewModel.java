@@ -1,4 +1,4 @@
-package by.cooper.android.retailaccounting.model;
+package by.cooper.android.retailaccounting.viewmodel;
 
 import android.databinding.BaseObservable;
 

@@ -1,24 +1,27 @@
 package by.cooper.android.retailaccounting.model;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.parceler.Parcel;
 
 import by.cooper.android.retailaccounting.util.CommodityContract;
 import by.cooper.android.retailaccounting.util.PhoneContract;
 import by.cooper.android.retailaccounting.util.UrlContract;
 
 
-public class Phone implements Commodity, Parcelable {
+@Parcel
+public class Phone implements Commodity {
 
     public static final int INCORRECT_DATE = -1;
 
-    @NonNull
+    @JsonIgnore
+    private String mKey;
+
     @JsonProperty(CommodityContract.BRAND)
     private String mBrand;
-    @NonNull
     @JsonProperty(CommodityContract.MODEL)
     private String mModel;
     @JsonProperty(CommodityContract.COUNT)
@@ -30,7 +33,6 @@ public class Phone implements Commodity, Parcelable {
     @JsonProperty(CommodityContract.SOLD_DATE)
     private long mSoldDate;
 
-    @NonNull
     @JsonProperty(PhoneContract.IMEI)
     private String mImei;
     @JsonProperty(PhoneContract.SERIAL_NUMBER)
@@ -42,7 +44,11 @@ public class Phone implements Commodity, Parcelable {
         return UrlContract.BASE_URL + PhoneContract.PHONE_PATH;
     }
 
+    public Phone() {
+    }
+
     public Phone(@NonNull String brand, @NonNull String model, long receiveDate, @NonNull String imei) {
+        mKey = "";
         mBrand = brand;
         mModel = model;
         mReceiveDate = receiveDate;
@@ -53,7 +59,16 @@ public class Phone implements Commodity, Parcelable {
     }
 
     @Override
-    @NonNull
+    public String getKey() {
+        return mKey;
+    }
+
+    @Override
+    public void setKey(@NonNull String key) {
+        mKey = key;
+    }
+
+    @Override
     public String getBrand() {
         return mBrand;
     }
@@ -155,44 +170,4 @@ public class Phone implements Commodity, Parcelable {
                 ", mImageUrl='" + mImageUrl + '\'' +
                 '}';
     }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.mBrand);
-        dest.writeString(this.mModel);
-        dest.writeInt(this.mCount);
-        dest.writeInt(this.mPrice);
-        dest.writeLong(this.mReceiveDate);
-        dest.writeLong(this.mSoldDate);
-        dest.writeString(this.mImei);
-        dest.writeString(this.mSerialNumber);
-        dest.writeString(this.mImageUrl);
-    }
-
-    protected Phone(Parcel in) {
-        this.mBrand = in.readString();
-        this.mModel = in.readString();
-        this.mCount = in.readInt();
-        this.mPrice = in.readInt();
-        this.mReceiveDate = in.readLong();
-        this.mSoldDate = in.readLong();
-        this.mImei = in.readString();
-        this.mSerialNumber = in.readString();
-        this.mImageUrl = in.readString();
-    }
-
-    public static final Creator<Phone> CREATOR = new Creator<Phone>() {
-        public Phone createFromParcel(Parcel source) {
-            return new Phone(source);
-        }
-
-        public Phone[] newArray(int size) {
-            return new Phone[size];
-        }
-    };
 }

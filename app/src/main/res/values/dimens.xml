@@ -2,4 +2,21 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <dimen name="toolbar_elevation">3dp</dimen>
+    <dimen name="app_bar_layout_height">192dp</dimen>
+    <dimen name="app_bar_layout_elevation">3dp</dimen>
+    <dimen name="collapsing_toolbar_layout_title_margin_start">48dp</dimen>
+    <dimen name="collapsing_toolbar_layout_title_margin_end">64dp</dimen>
+
+    <dimen name="floating_action_button_margin">0dp</dimen>
+    <dimen name="floating_action_button_border_width">0dp</dimen>
+    <dimen name="floating_action_button_elevation">6dp</dimen>
+    <dimen name="floating_action_button_pressed_translation_z">12dp</dimen>
+
+    <dimen name="divider_horizontal_height">1dp</dimen>
+
+    <dimen name="edit_date_percent_layout_horizontal_margin">2dp</dimen>
+    <dimen name="edit_date_percent_layout_vertical_margin">6dp</dimen>
+    <dimen name="edit_date_text_padding">2dp</dimen>
 </resources>

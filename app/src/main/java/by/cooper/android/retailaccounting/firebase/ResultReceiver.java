@@ -5,7 +5,7 @@ import com.firebase.client.FirebaseError;
 import java.util.List;
 
 
-public interface ResponseReceiver<T> {
+public interface ResultReceiver<T> {
     void onReceive(List<T> itemList);
 
     void onError(FirebaseError error);

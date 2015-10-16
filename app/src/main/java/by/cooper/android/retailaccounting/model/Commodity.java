@@ -4,12 +4,16 @@ import android.support.annotation.NonNull;
 
 
 public interface Commodity {
-    @NonNull
+
+
+    String getKey();
+
+    void setKey(@NonNull String key);
+
     String getBrand();
 
     void setBrand(@NonNull String brand);
 
-    @NonNull
     String getModel();
 
     void setModel(@NonNull String model);

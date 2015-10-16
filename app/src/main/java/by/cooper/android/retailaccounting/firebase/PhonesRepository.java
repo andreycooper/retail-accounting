@@ -1,6 +1,5 @@
 package by.cooper.android.retailaccounting.firebase;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.firebase.client.DataSnapshot;
@@ -16,32 +15,30 @@ import by.cooper.android.retailaccounting.util.PhoneContract;
 
 public final class PhonesRepository implements Repository<Phone> {
 
-    public PhonesRepository(@NonNull Context context) {
-        Firebase.setAndroidContext(context.getApplicationContext());
-        Firebase.getDefaultConfig().setPersistenceEnabled(true);
-    }
+    private Firebase mRef;
 
-    public static PhonesRepository create(@NonNull Context context) {
-        return new PhonesRepository(context);
+    public PhonesRepository() {
+        mRef = new Firebase(Phone.getUrlPath());
+        mRef.keepSynced(true);
     }
 
     @Override
-    public void requestItems(@NonNull ResponseReceiver<Phone> responseReceiver) {
-        Firebase ref = new Firebase(Phone.getUrlPath());
-        ref.keepSynced(true);
-        ref.addListenerForSingleValueEvent(new SingleRequest<>(responseReceiver, Phone.class));
+    public void requestItems(@NonNull ResultReceiver<Phone> resultReceiver) {
+        mRef.addListenerForSingleValueEvent(new SingleRequest<>(resultReceiver, Phone.class));
     }
 
     @Override
     public void putItem(@NonNull Phone phone) {
-        Firebase ref = new Firebase(Phone.getUrlPath());
-        ref.keepSynced(true);
-        Query refQuery = ref.orderByChild(PhoneContract.IMEI).equalTo(phone.getImei());
+        Query refQuery = mRef.orderByChild(PhoneContract.IMEI).equalTo(phone.getImei());
         refQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.getChildren().iterator().hasNext()) {
-                    ref.push().setValue(phone);
+                    Firebase phoneRef = mRef.push();
+                    phoneRef.setValue(phone);
+                    String phoneKey = phoneRef.getKey();
+                    phone.setKey(phoneKey);
+                    // TODO: maybe save to local DB?
                 }
             }
 
