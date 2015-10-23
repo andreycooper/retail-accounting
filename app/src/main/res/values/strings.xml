@@ -31,7 +31,15 @@
 
     <!-- Rationale for asking for Contacts -->
     <string name="contacts_permission_rationale">Contacts access is needed in order to retrieve your email address.</string>
+
     <string name="mandatory_field">Mandatory field!</string>
     <string name="invalid_email">Please provide a valid email address!</string>
+
+    <string name="firebase_error_invalid_email">The specified email address is incorrect.</string>
+    <string name="firebase_error_invalid_password">The specified password is incorrect.</string>
+    <string name="firebase_error_disconnected">The operation had to be aborted due to a network disconnect</string>
+    <string name="firebase_error_network_error">The operation could not be performed due to a network error</string>
+    <string name="firebase_error_unknown_error">Unknown error</string>
+    <string name="firebase_error_user_does_not_exist">The specified user does not exist.</string>
 
 </resources>

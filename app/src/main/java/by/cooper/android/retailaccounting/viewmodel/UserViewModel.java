@@ -1,5 +1,6 @@
 package by.cooper.android.retailaccounting.viewmodel;
 
+import android.app.Activity;
 import android.content.res.Resources;
 import android.databinding.BaseObservable;
 import android.databinding.Bindable;
@@ -15,18 +16,26 @@ import android.util.Patterns;
 import android.view.View;
 
 import com.firebase.client.AuthData;
-import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+
+import org.parceler.Parcel;
+import org.parceler.Transient;
 
 import javax.inject.Inject;
 
+import by.cooper.android.retailaccounting.App;
 import by.cooper.android.retailaccounting.R;
-import by.cooper.android.retailaccounting.firebase.AuthManager;
+import by.cooper.android.retailaccounting.firebase.FirebaseErrorException;
+import by.cooper.android.retailaccounting.firebase.auth.AuthManager;
 import by.cooper.android.retailaccounting.model.User;
 import by.cooper.android.retailaccounting.util.Objects;
 import by.cooper.android.retailaccounting.util.TextWatcherAdapter;
+import dagger.Lazy;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.subscriptions.CompositeSubscription;
 
 
+@Parcel(Parcel.Serialization.BEAN)
 public class UserViewModel extends BaseObservable {
     public static final int EMPTY_RESOURCE_ID = 0;
     public static final String TAG = "UserViewModel";
@@ -40,11 +49,14 @@ public class UserViewModel extends BaseObservable {
     @Bindable
     public ObservableField<String> passwordError = new ObservableField<>();
 
-    private AuthManager mAuthManager;
-
     @Inject
-    public UserViewModel(AuthManager authManager) {
-        mAuthManager = authManager;
+    @Transient
+    public Lazy<AuthManager> mLazyAuthManager;
+    @Transient
+    private CompositeSubscription mLoginSubscription;
+
+    public UserViewModel() {
+        mLoginSubscription = new CompositeSubscription();
     }
 
     public void setUser(@NonNull User user) {
@@ -78,21 +90,11 @@ public class UserViewModel extends BaseObservable {
 
     public View.OnClickListener getLoginClickListener() {
         return view -> {
+            if (mLazyAuthManager == null) {
+                App.get(view.getContext()).getLoginComponent().inject(UserViewModel.this);
+            }
             if (validate(view.getResources())) {
-                Snackbar.make(view.getRootView(), "Email and pass is Ok", Snackbar.LENGTH_SHORT).show();
-                mAuthManager.login(email.get(), password.get(), new Firebase.AuthResultHandler() {
-                    @Override
-                    public void onAuthenticated(AuthData authData) {
-                        Log.d(TAG, "User with email: " + email.get() + " login OK");
-                    }
-
-                    @Override
-                    public void onAuthenticationError(FirebaseError firebaseError) {
-                        Log.d(TAG, firebaseError.toString());
-                    }
-                });
-            } else {
-                Snackbar.make(view.getRootView(), "Enter correct fields", Snackbar.LENGTH_SHORT).show();
+                mLazyAuthManager.get().login(email.get(), password.get());
             }
         };
     }
@@ -111,6 +113,69 @@ public class UserViewModel extends BaseObservable {
                 setPasswordError(view.getResources(), EMPTY_RESOURCE_ID);
             }
         };
+    }
+
+    public void setLoginSuccess(View view, AuthData authData) {
+        Log.d(TAG, "authData:" + authData);
+        // TODO: show next screen!
+        Snackbar.make(view, "Proceed to login", Snackbar.LENGTH_SHORT).show();
+    }
+
+    public void setLoginError(View view, FirebaseErrorException throwable) {
+        Resources resources = view.getResources();
+        String errorMessage;
+        switch (throwable.getFirebaseError().getCode()) {
+            case FirebaseError.USER_DOES_NOT_EXIST:
+                errorMessage = resources.getString(R.string.firebase_error_user_does_not_exist);
+                emailError.set(errorMessage);
+                return;
+            case FirebaseError.INVALID_EMAIL:
+                errorMessage = resources.getString(R.string.firebase_error_invalid_email);
+                emailError.set(errorMessage);
+                return;
+            case FirebaseError.INVALID_PASSWORD:
+                errorMessage = resources.getString(R.string.firebase_error_invalid_password);
+                passwordError.set(errorMessage);
+                return;
+            case FirebaseError.DISCONNECTED:
+                errorMessage = resources.getString(R.string.firebase_error_disconnected);
+                break;
+            case FirebaseError.NETWORK_ERROR:
+                errorMessage = resources.getString(R.string.firebase_error_network_error);
+                break;
+            default:
+                errorMessage = resources.getString(R.string.firebase_error_unknown_error);
+                break;
+        }
+        Snackbar.make(view, errorMessage, Snackbar.LENGTH_SHORT).show();
+    }
+
+    public void subscribeLoginEvents(Activity activity) {
+        if (mLazyAuthManager == null) {
+            App.get(activity).getLoginComponent().inject(UserViewModel.this);
+        }
+        View rootView = activity.findViewById(android.R.id.content);
+        mLoginSubscription.add(mLazyAuthManager.get().getLoginObservable()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(authDataNotification -> {
+                    switch (authDataNotification.getKind()) {
+                        case OnNext:
+                            Log.d(TAG, "onNext()");
+                            setLoginSuccess(rootView, authDataNotification.getValue());
+                            break;
+                        case OnError:
+                            Log.d(TAG, "onError()");
+                            Throwable throwable = authDataNotification.getThrowable();
+                            if (throwable instanceof FirebaseErrorException) {
+                                setLoginError(rootView, (FirebaseErrorException) throwable);
+                            }
+                            break;
+                    }
+                }));
+    }
+
+    public void unsubscribeLoginEvents() {
+        mLoginSubscription.clear();
     }
 
     private boolean validate(Resources resources) {

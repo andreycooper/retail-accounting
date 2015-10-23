@@ -8,7 +8,7 @@ import com.firebase.client.Firebase;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
-import by.cooper.android.retailaccounting.dagger.DaggerLoginComponent;
+import by.cooper.android.retailaccounting.dagger.component.DaggerLoginComponent;
 import by.cooper.android.retailaccounting.dagger.component.LoginComponent;
 import by.cooper.android.retailaccounting.dagger.module.FirebaseModule;
 import by.cooper.android.retailaccounting.dagger.module.LoginModule;
