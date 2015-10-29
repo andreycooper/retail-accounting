@@ -8,6 +8,9 @@ import com.firebase.client.FirebaseError;
 import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import by.cooper.android.retailaccounting.model.Phone;
 import by.cooper.android.retailaccounting.model.Repository;
 import by.cooper.android.retailaccounting.util.PhoneContract;
@@ -17,9 +20,9 @@ public final class PhonesRepository implements Repository<Phone> {
 
     private Firebase mRef;
 
-    public PhonesRepository() {
-        mRef = new Firebase(Phone.getUrlPath());
-        mRef.keepSynced(true);
+    @Inject
+    public PhonesRepository(@Named("phones") @NonNull Firebase ref) {
+        mRef = ref;
     }
 
     @Override

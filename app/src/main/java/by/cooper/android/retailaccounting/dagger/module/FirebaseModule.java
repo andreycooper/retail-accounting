@@ -6,11 +6,9 @@ import android.support.annotation.NonNull;
 
 import com.firebase.client.Firebase;
 
-import javax.inject.Singleton;
+import javax.inject.Named;
 
-import by.cooper.android.retailaccounting.dagger.Named;
 import by.cooper.android.retailaccounting.firebase.auth.AuthListener;
-import by.cooper.android.retailaccounting.firebase.auth.AuthManager;
 import by.cooper.android.retailaccounting.firebase.auth.AuthStorage;
 import by.cooper.android.retailaccounting.util.UrlContract;
 import dagger.Module;
@@ -35,9 +33,7 @@ public class FirebaseModule {
     @Provides
     @Named("auth")
     public SharedPreferences provideAuthSharedPrefs(Context context) {
-        SharedPreferences prefs = context.getApplicationContext()
-                .getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE);
-        return prefs;
+        return context.getApplicationContext().getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE);
     }
 
     @NonNull
@@ -48,6 +44,7 @@ public class FirebaseModule {
 
     @NonNull
     @Provides
+    @Named("base")
     public Firebase provideBaseFirebase() {
         return new Firebase(UrlContract.BASE_URL);
     }

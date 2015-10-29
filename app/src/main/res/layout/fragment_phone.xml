@@ -134,7 +134,7 @@
                 </android.support.percent.PercentRelativeLayout>
             </LinearLayout>
 
-            <View style="@style/Divider"/>
+            <View style="@style/HorizontalDivider"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -237,7 +237,7 @@
                 </android.support.percent.PercentRelativeLayout>
             </LinearLayout>
 
-            <View style="@style/Divider"/>
+            <View style="@style/HorizontalDivider"/>
 
         </LinearLayout>
     </android.support.v4.widget.NestedScrollView>

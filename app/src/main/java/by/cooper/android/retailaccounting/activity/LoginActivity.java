@@ -11,16 +11,18 @@ import javax.inject.Inject;
 
 import by.cooper.android.retailaccounting.App;
 import by.cooper.android.retailaccounting.R;
-import by.cooper.android.retailaccounting.viewmodel.UserViewModel;
+import by.cooper.android.retailaccounting.util.Events;
+import by.cooper.android.retailaccounting.viewmodel.LoginViewModel;
 import dagger.Lazy;
+import de.greenrobot.event.EventBus;
 
 public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
     private static final String USER_VIEW_MODEL = "user_view_model";
     @Inject
-    Lazy<UserViewModel> mLazyUserViewModel;
-    private UserViewModel mUserViewModel;
+    Lazy<LoginViewModel> mLazyLoginViewModel;
+    private LoginViewModel mLoginViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,28 +31,34 @@ public class LoginActivity extends AppCompatActivity {
         by.cooper.android.retailaccounting.databinding.ActivityLoginBinding binding
                 = DataBindingUtil.setContentView(this, R.layout.activity_login);
         if (savedInstanceState != null) {
-            mUserViewModel = Parcels.unwrap(savedInstanceState.getParcelable(USER_VIEW_MODEL));
+            mLoginViewModel = Parcels.unwrap(savedInstanceState.getParcelable(USER_VIEW_MODEL));
         } else {
-            mUserViewModel = mLazyUserViewModel.get();
+            mLoginViewModel = mLazyLoginViewModel.get();
         }
-        binding.setUserModel(mUserViewModel);
+        binding.setLoginViewModel(mLoginViewModel);
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable(USER_VIEW_MODEL, Parcels.wrap(mUserViewModel));
+        outState.putParcelable(USER_VIEW_MODEL, Parcels.wrap(mLoginViewModel));
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        mUserViewModel.subscribeLoginEvents(this);
+        EventBus.getDefault().registerSticky(this);
     }
 
     @Override
     protected void onStop() {
-        mUserViewModel.unsubscribeLoginEvents();
+        EventBus.getDefault().unregister(this);
         super.onStop();
+    }
+
+    @SuppressWarnings("unused")
+    public void onEventMainThread(Events.FirebaseLoginEvent loginEvent) {
+        EventBus.getDefault().removeStickyEvent(loginEvent);
+        mLoginViewModel.onReceiveLoginEvent(this, loginEvent);
     }
 }

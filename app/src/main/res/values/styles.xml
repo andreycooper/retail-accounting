@@ -8,10 +8,21 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="Divider">
+    <style name="HorizontalDivider">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">@dimen/divider_horizontal_height</item>
-        <item name="android:background">?android:attr/listDivider</item>
+        <item name="android:background">@android:color/darker_gray</item>
     </style>
+
+    <style name="VerticalDivider">
+        <item name="android:layout_width">@dimen/divider_vertical_width</item>
+        <item name="android:minWidth">@dimen/divider_vertical_width</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">@android:color/darker_gray</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
 
 </resources>

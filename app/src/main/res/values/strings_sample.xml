@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="sample_receive_date">Fri, Sep 5 1025</string>
+    <string name="sample_brand">Samsung</string>
+    <string name="sample_model">SM-G925F</string>
+    <string name="sample_imei">123456789012345</string>
+    <string name="sample_date">15.09.2015</string>
 </resources>

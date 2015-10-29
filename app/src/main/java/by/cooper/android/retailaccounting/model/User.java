@@ -6,17 +6,16 @@ import com.firebase.client.AuthData;
 
 import org.parceler.Parcel;
 
-/**
- * Created by Andrey Bondarenko on 16.10.15.
- */
+
 @Parcel
 public class User {
-    private String mUid;
-    private String mProvider;
-    private String mEmail;
-    private String mPass;
-    private long mExpireDate;
-    private String mProfileImageUrl;
+    // non private fields for @Parcel
+    String mUid;
+    String mProvider;
+    String mEmail;
+    String mPass;
+    long mExpireDate;
+    String mProfileImageUrl;
 
     public User() {
     }

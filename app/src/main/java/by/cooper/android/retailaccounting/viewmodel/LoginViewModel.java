@@ -1,6 +1,8 @@
 package by.cooper.android.retailaccounting.viewmodel;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.databinding.BaseObservable;
 import android.databinding.Bindable;
@@ -11,7 +13,6 @@ import android.support.design.widget.Snackbar;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 
@@ -25,21 +26,21 @@ import javax.inject.Inject;
 
 import by.cooper.android.retailaccounting.App;
 import by.cooper.android.retailaccounting.R;
-import by.cooper.android.retailaccounting.firebase.FirebaseErrorException;
+import by.cooper.android.retailaccounting.activity.HomeActivity;
 import by.cooper.android.retailaccounting.firebase.auth.AuthManager;
 import by.cooper.android.retailaccounting.model.User;
+import by.cooper.android.retailaccounting.util.Events;
 import by.cooper.android.retailaccounting.util.Objects;
 import by.cooper.android.retailaccounting.util.TextWatcherAdapter;
 import dagger.Lazy;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.subscriptions.CompositeSubscription;
 
 
 @Parcel(Parcel.Serialization.BEAN)
-public class UserViewModel extends BaseObservable {
+public class LoginViewModel extends BaseObservable {
     public static final int EMPTY_RESOURCE_ID = 0;
-    public static final String TAG = "UserViewModel";
+    public static final String TAG = "LoginViewModel";
 
+    // non private fields for @Parcel
     @Bindable
     public ObservableField<String> email = new ObservableField<>();
     @Bindable
@@ -48,15 +49,14 @@ public class UserViewModel extends BaseObservable {
     public ObservableField<String> password = new ObservableField<>();
     @Bindable
     public ObservableField<String> passwordError = new ObservableField<>();
+    @Bindable
+    public ObservableField<Boolean> isLoginInProgress = new ObservableField<>(false);
 
     @Inject
     @Transient
     public Lazy<AuthManager> mLazyAuthManager;
-    @Transient
-    private CompositeSubscription mLoginSubscription;
 
-    public UserViewModel() {
-        mLoginSubscription = new CompositeSubscription();
+    public LoginViewModel() {
     }
 
     public void setUser(@NonNull User user) {
@@ -91,10 +91,13 @@ public class UserViewModel extends BaseObservable {
     public View.OnClickListener getLoginClickListener() {
         return view -> {
             if (mLazyAuthManager == null) {
-                App.get(view.getContext()).getLoginComponent().inject(UserViewModel.this);
+                App.get(view.getContext()).getLoginComponent().inject(LoginViewModel.this);
             }
-            if (validate(view.getResources())) {
-                mLazyAuthManager.get().login(email.get(), password.get());
+            String emailString = email.get() != null ? email.get().trim() : "";
+            String passwordString = password.get() != null ? password.get().trim() : "";
+            if (validate(view.getResources(), emailString, passwordString)) {
+                mLazyAuthManager.get().login(emailString, passwordString);
+                isLoginInProgress.set(true);
             }
         };
     }
@@ -115,16 +118,25 @@ public class UserViewModel extends BaseObservable {
         };
     }
 
-    public void setLoginSuccess(View view, AuthData authData) {
-        Log.d(TAG, "authData:" + authData);
-        // TODO: show next screen!
-        Snackbar.make(view, "Proceed to login", Snackbar.LENGTH_SHORT).show();
+    public void onReceiveLoginEvent(Activity activity, Events.FirebaseLoginEvent loginEvent) {
+        isLoginInProgress.set(false);
+        View rootView = activity.findViewById(android.R.id.content);
+        if (loginEvent.isSuccess()) {
+            setLoginSuccess(rootView, loginEvent.getAuthData());
+        } else {
+            setLoginError(rootView, loginEvent.getFirebaseError());
+        }
     }
 
-    public void setLoginError(View view, FirebaseErrorException throwable) {
+    private void setLoginSuccess(View view, AuthData authData) {
+        Context context = view.getContext();
+        context.startActivity(new Intent(context, HomeActivity.class));
+    }
+
+    private void setLoginError(View view, FirebaseError firebaseError) {
         Resources resources = view.getResources();
         String errorMessage;
-        switch (throwable.getFirebaseError().getCode()) {
+        switch (firebaseError.getCode()) {
             case FirebaseError.USER_DOES_NOT_EXIST:
                 errorMessage = resources.getString(R.string.firebase_error_user_does_not_exist);
                 emailError.set(errorMessage);
@@ -150,51 +162,23 @@ public class UserViewModel extends BaseObservable {
         Snackbar.make(view, errorMessage, Snackbar.LENGTH_SHORT).show();
     }
 
-    public void subscribeLoginEvents(Activity activity) {
-        if (mLazyAuthManager == null) {
-            App.get(activity).getLoginComponent().inject(UserViewModel.this);
-        }
-        View rootView = activity.findViewById(android.R.id.content);
-        mLoginSubscription.add(mLazyAuthManager.get().getLoginObservable()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(authDataNotification -> {
-                    switch (authDataNotification.getKind()) {
-                        case OnNext:
-                            Log.d(TAG, "onNext()");
-                            setLoginSuccess(rootView, authDataNotification.getValue());
-                            break;
-                        case OnError:
-                            Log.d(TAG, "onError()");
-                            Throwable throwable = authDataNotification.getThrowable();
-                            if (throwable instanceof FirebaseErrorException) {
-                                setLoginError(rootView, (FirebaseErrorException) throwable);
-                            }
-                            break;
-                    }
-                }));
-    }
-
-    public void unsubscribeLoginEvents() {
-        mLoginSubscription.clear();
-    }
-
-    private boolean validate(Resources resources) {
-        int emailErrorRes = getEmailErrorStringId(email.get());
-        int passwordErrorRes = getPasswordErrorStringId(password.get());
+    private boolean validate(@NonNull Resources resources, @Nullable String email, @Nullable String password) {
+        int emailErrorRes = getEmailErrorStringId(email);
+        int passwordErrorRes = getPasswordErrorStringId(password);
         setErrors(resources, emailErrorRes, passwordErrorRes);
         return emailErrorRes == EMPTY_RESOURCE_ID && passwordErrorRes == EMPTY_RESOURCE_ID;
     }
 
-    private void setErrors(Resources resources, int emailErrorRes, int passwordErrorRes) {
+    private void setErrors(@NonNull Resources resources, int emailErrorRes, int passwordErrorRes) {
         setEmailError(resources, emailErrorRes);
         setPasswordError(resources, passwordErrorRes);
     }
 
-    private void setPasswordError(Resources resources, int passwordErrorRes) {
+    private void setPasswordError(@NonNull Resources resources, int passwordErrorRes) {
         passwordError.set(passwordErrorRes != EMPTY_RESOURCE_ID ? resources.getString(passwordErrorRes) : null);
     }
 
-    private void setEmailError(Resources resources, int emailErrorRes) {
+    private void setEmailError(@NonNull Resources resources, int emailErrorRes) {
         emailError.set(emailErrorRes != EMPTY_RESOURCE_ID ? resources.getString(emailErrorRes) : null);
     }
 

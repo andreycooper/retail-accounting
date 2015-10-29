@@ -15,30 +15,31 @@ import by.cooper.android.retailaccounting.util.UrlContract;
 @Parcel
 public class Phone implements Commodity {
 
-    public static final int INCORRECT_DATE = -1;
+    public static final int DEFAULT_DATE = 0;
 
+    // non private fields for @Parcel
     @JsonIgnore
-    private String mKey;
+    String mKey;
 
     @JsonProperty(CommodityContract.BRAND)
-    private String mBrand;
+    String mBrand;
     @JsonProperty(CommodityContract.MODEL)
-    private String mModel;
+    String mModel;
     @JsonProperty(CommodityContract.COUNT)
-    private int mCount;
+    int mCount;
     @JsonProperty(CommodityContract.PRICE)
-    private int mPrice;
+    int mPrice;
     @JsonProperty(CommodityContract.RECEIVE_DATE)
-    private long mReceiveDate;
+    long mReceiveDate;
     @JsonProperty(CommodityContract.SOLD_DATE)
-    private long mSoldDate;
+    long mSoldDate;
 
     @JsonProperty(PhoneContract.IMEI)
-    private String mImei;
+    String mImei;
     @JsonProperty(PhoneContract.SERIAL_NUMBER)
-    private String mSerialNumber;
+    String mSerialNumber;
     @JsonProperty(CommodityContract.COMMODITY_IMAGE_URL)
-    private String mImageUrl;
+    String mImageUrl;
 
     public static String getUrlPath() {
         return UrlContract.BASE_URL + PhoneContract.PHONE_PATH;
@@ -55,7 +56,7 @@ public class Phone implements Commodity {
         mImei = imei;
         mPrice = 0;
         mCount = 1;
-        mSoldDate = INCORRECT_DATE;
+        mSoldDate = DEFAULT_DATE;
     }
 
     @Override

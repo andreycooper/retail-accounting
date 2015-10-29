@@ -1,14 +1,14 @@
 package by.cooper.android.retailaccounting.dagger;
 
-import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import javax.inject.Qualifier;
+import javax.inject.Scope;
 
-@Qualifier
-@Documented
+/**
+ * This annotation needs in PhonesComponent for another scope from LoginComponent
+ */
+@Scope
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Named {
-    String value() default "";
+public @interface AppScope {
 }

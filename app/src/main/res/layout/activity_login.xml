@@ -5,9 +5,11 @@
 
     <data>
 
+        <import type="android.view.View"/>
+
         <variable
-            name="userModel"
-            type="by.cooper.android.retailaccounting.viewmodel.UserViewModel"/>
+            name="loginViewModel"
+            type="by.cooper.android.retailaccounting.viewmodel.LoginViewModel"/>
     </data>
 
     <android.support.design.widget.CoordinatorLayout
@@ -37,29 +39,31 @@
                 <android.support.design.widget.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:error="@{userModel.emailError}">
+                    app:error="@{loginViewModel.emailError}">
 
                     <AutoCompleteTextView
                         android:id="@+id/email"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:enabled="@{loginViewModel.isLoginInProgress ? false : true}"
                         android:hint="@string/prompt_email"
                         android:inputType="textEmailAddress"
                         android:maxLines="1"
                         android:singleLine="true"
-                        app:addTextChangedListener="@{userModel.emailWatcher}"
-                        app:onFocusChangeListener="@{userModel.emailFocusListener}"/>
+                        app:addTextChangedListener="@{loginViewModel.emailWatcher}"
+                        app:onFocusChangeListener="@{loginViewModel.emailFocusListener}"/>
                 </android.support.design.widget.TextInputLayout>
 
                 <android.support.design.widget.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:error="@{userModel.passwordError}">
+                    app:error="@{loginViewModel.passwordError}">
 
                     <EditText
                         android:id="@+id/password"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:enabled="@{loginViewModel.isLoginInProgress ? false : true}"
                         android:hint="@string/prompt_password"
                         android:imeActionId="@+id/login"
                         android:imeActionLabel="@string/action_sign_in_short"
@@ -67,20 +71,31 @@
                         android:inputType="textPassword"
                         android:maxLines="1"
                         android:singleLine="true"
-                        app:addTextChangedListener="@{userModel.passwordWatcher}"
-                        app:onFocusChangeListener="@{userModel.passwordFocusListener}"/>
+                        app:addTextChangedListener="@{loginViewModel.passwordWatcher}"
+                        app:onFocusChangeListener="@{loginViewModel.passwordFocusListener}"/>
                 </android.support.design.widget.TextInputLayout>
 
                 <Button
                     android:id="@+id/email_login_button"
                     style="?android:textAppearanceSmall"
-                    android:layout_width="240dp"
-                    android:layout_height="64dp"
+                    android:layout_width="@dimen/login_button_width"
+                    android:layout_height="@dimen/login_button_height"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="16dp"
-                    android:onClick="@{userModel.loginClickListener}"
+                    android:enabled="@{loginViewModel.isLoginInProgress ? false : true}"
+                    android:layout_marginTop="@dimen/login_button_margin"
+                    android:onClick="@{loginViewModel.loginClickListener}"
                     android:text="@string/action_sign_in"
                     android:textStyle="bold"/>
+
+                <me.zhanghai.android.materialprogressbar.MaterialProgressBar
+                    android:id="@+id/progressbar"
+                    style="@style/Widget.MaterialProgressBar.ProgressBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="@dimen/login_progress_margin"
+                    android:indeterminate="true"
+                    android:visibility="@{loginViewModel.isLoginInProgress ? View.VISIBLE : View.INVISIBLE}"/>
 
             </LinearLayout>
 

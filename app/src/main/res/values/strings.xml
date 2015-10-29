@@ -1,4 +1,6 @@
 <resources>
+    <string name="title_activity_home">Phones</string>
+
     <string name="app_name">Retail Accounting</string>
     <string name="hello_world">Hello world</string>
 
@@ -41,5 +43,10 @@
     <string name="firebase_error_network_error">The operation could not be performed due to a network error</string>
     <string name="firebase_error_unknown_error">Unknown error</string>
     <string name="firebase_error_user_does_not_exist">The specified user does not exist.</string>
+
+    <string name="phone_item_label_imei">IMEI:</string>
+    <string name="phone_item_label_receive_date">Receive:</string>
+    <string name="phone_item_label_sold_date">Sold:</string>
+    <string name="phone_item_label_not_sold">Not sold yet</string>
 
 </resources>
