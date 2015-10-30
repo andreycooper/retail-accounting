@@ -1,5 +1,6 @@
 package by.cooper.android.retailaccounting.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -51,10 +52,7 @@ public class HomeActivity extends AppCompatActivity {
 
         setSupportActionBar(toolbar);
 
-        fab.setOnClickListener(view -> Snackbar
-                .make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null)
-                .show());
+        fab.setOnClickListener(view -> startActivity(new Intent(HomeActivity.this, PhoneActivity.class)));
 
         PhonesRecyclerAdapter adapter = new PhonesRecyclerAdapter(new ArrayList<>());
         recyclerView.setHasFixedSize(true);

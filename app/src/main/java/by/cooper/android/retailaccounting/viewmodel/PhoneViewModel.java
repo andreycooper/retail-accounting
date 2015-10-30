@@ -1,77 +1,80 @@
 package by.cooper.android.retailaccounting.viewmodel;
 
-import android.databinding.BaseObservable;
-import android.support.annotation.NonNull;
-import android.view.View;
-import android.widget.Toast;
 
+import android.databinding.BaseObservable;
+import android.databinding.Bindable;
+import android.support.annotation.NonNull;
+import android.util.Log;
+import android.view.View;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
+import by.cooper.android.retailaccounting.BR;
 import by.cooper.android.retailaccounting.model.Phone;
 import by.cooper.android.retailaccounting.util.Utils;
 
 
 public class PhoneViewModel extends BaseObservable {
 
-    private static final String DD_MM_YYYY_PATTERN = "dd.MM.yyyy";
-
-    @NonNull
     private Phone mPhone;
+
+    public PhoneViewModel() {
+        mPhone = new Phone();
+    }
 
     public PhoneViewModel(@NonNull Phone phone) {
         mPhone = phone;
     }
 
-    @NonNull
-    public Phone getPhone() {
-        return mPhone;
-    }
-
-
-    public String getPhoneReceiveDate() {
-        return Utils.convertDateMillisToPattern(mPhone.getReceiveDate(), DD_MM_YYYY_PATTERN);
-    }
-
-    public String getPhoneSoldDate() {
-        final long soldDate = mPhone.getSoldDate();
-        if (soldDate > Phone.DEFAULT_DATE) {
-            return Utils.convertDateMillisToPattern(soldDate, DD_MM_YYYY_PATTERN);
-        } else {
-            // TODO: get String from Resources
-            return "Not sold yet";
-        }
-    }
-
-    public String getPhoneBrand() {
+    @Bindable
+    public String getBrand() {
         return mPhone.getBrand();
     }
 
-    public String getPhoneModel() {
+    @Bindable
+    public String getModel() {
         return mPhone.getModel();
     }
 
-    public String getPhoneImei() {
+    @Bindable
+    public String getImei() {
         return mPhone.getImei();
     }
 
-    public boolean isPhoneSold() {
-        return mPhone.getSoldDate() > Phone.DEFAULT_DATE;
+    @Bindable
+    public String getReceiveDate() {
+        if (mPhone.getReceiveDate() <= 0) {
+            mPhone.setReceiveDate(new DateTime(DateTimeZone.UTC).getMillis());
+        }
+        return getConvertedDate(mPhone.getReceiveDate());
     }
 
-    public View.OnClickListener getOnDeleteClickListener() {
-        return view -> Toast.makeText(view.getContext(),
-                "Delete phone with IMEI: " + mPhone.getImei() + "\nKey in DB: " + mPhone.getKey(),
-                Toast.LENGTH_SHORT).show();
+    @Bindable
+    public String getSoldDate() {
+        if (mPhone.getSoldDate() > 0) {
+            return getConvertedDate(mPhone.getSoldDate());
+        } else {
+            return "Not Sold Yet";
+        }
     }
 
-    public View.OnClickListener getOnEditClickListener() {
-        return view -> Toast.makeText(view.getContext(),
-                "Edit phone with IMEI: " + mPhone.getImei() + "\nKey in DB: " + mPhone.getKey(),
-                Toast.LENGTH_SHORT).show();
+    private String getConvertedDate(long millis) {
+        DateTimeZone tz = DateTimeZone.UTC;
+        return Utils.convertDateMillisToPattern(tz.convertUTCToLocal(millis), "EEE, dd MMM  yyyy");
     }
 
-    public View.OnClickListener getOnCheckClickListener() {
-        return view -> Toast.makeText(view.getContext(),
-                "Sold phone with IMEI: " + mPhone.getImei() + "\nKey in DB: " + mPhone.getKey(),
-                Toast.LENGTH_SHORT).show();
+    public void setBrand(String brand) {
+        mPhone.setBrand(brand);
+        notifyPropertyChanged(BR.brand);
     }
 
+    public void setModel(String model) {
+        mPhone.setModel(model);
+        notifyPropertyChanged(BR.model);
+    }
+
+    public View.OnClickListener getOnBarcodeClickListener() {
+        return v -> Log.d("PhoneViewModel", "mPhone: " + mPhone.toString());
+    }
 }

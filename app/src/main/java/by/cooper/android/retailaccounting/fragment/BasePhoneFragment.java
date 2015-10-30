@@ -1,10 +1,11 @@
 package by.cooper.android.retailaccounting.fragment;
 
 
-import android.app.Fragment;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -21,6 +22,7 @@ import org.parceler.Parcels;
 
 import by.cooper.android.retailaccounting.R;
 import by.cooper.android.retailaccounting.model.Phone;
+import by.cooper.android.retailaccounting.viewmodel.PhoneViewModel;
 
 
 public abstract class BasePhoneFragment extends Fragment {
@@ -28,7 +30,7 @@ public abstract class BasePhoneFragment extends Fragment {
     private static final String LOG_TAG = BasePhoneFragment.class.getSimpleName();
 
     @Nullable
-    private Phone mPhone;
+    protected Phone mPhone;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -37,12 +39,16 @@ public abstract class BasePhoneFragment extends Fragment {
             mPhone = Parcels.unwrap(getArguments().getParcelable(PHONE));
         }
         setHasOptionsMenu(true);
+        setRetainInstance(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_phone, container, false);
+        by.cooper.android.retailaccounting.databinding.FragmentPhoneBinding binding =
+                DataBindingUtil.inflate(inflater, R.layout.fragment_phone, container, false);
+        binding.setPhoneViewModel(getViewModel());
+        View rootView = binding.getRoot();
         initUi(rootView);
         return rootView;
     }
@@ -63,6 +69,8 @@ public abstract class BasePhoneFragment extends Fragment {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    protected abstract PhoneViewModel getViewModel();
 
     protected abstract int getTitle();
 

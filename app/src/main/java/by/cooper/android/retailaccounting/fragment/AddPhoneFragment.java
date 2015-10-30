@@ -4,6 +4,7 @@ import android.util.Log;
 import android.view.MenuItem;
 
 import by.cooper.android.retailaccounting.R;
+import by.cooper.android.retailaccounting.viewmodel.PhoneViewModel;
 
 
 public class AddPhoneFragment extends BasePhoneFragment {
@@ -24,6 +25,11 @@ public class AddPhoneFragment extends BasePhoneFragment {
     @Override
     protected int getMenu() {
         return R.menu.menu_edit_phone_fragment;
+    }
+
+    @Override
+    protected PhoneViewModel getViewModel() {
+        return new PhoneViewModel();
     }
 
     @Override

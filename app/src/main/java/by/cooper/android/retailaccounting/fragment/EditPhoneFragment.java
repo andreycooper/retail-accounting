@@ -6,6 +6,7 @@ import org.parceler.Parcels;
 
 import by.cooper.android.retailaccounting.R;
 import by.cooper.android.retailaccounting.model.Phone;
+import by.cooper.android.retailaccounting.viewmodel.PhoneViewModel;
 
 
 public class EditPhoneFragment extends BasePhoneFragment {
@@ -20,6 +21,11 @@ public class EditPhoneFragment extends BasePhoneFragment {
         args.putParcelable(PHONE, Parcels.wrap(phone));
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    protected PhoneViewModel getViewModel() {
+        return new PhoneViewModel(mPhone);
     }
 
     @Override
