@@ -25,7 +25,7 @@ public class EditPhoneFragment extends BasePhoneFragment {
 
     @Override
     protected PhoneViewModel getViewModel() {
-        return new PhoneViewModel(mPhone);
+        return new PhoneViewModel(this, mPhone);
     }
 
     @Override

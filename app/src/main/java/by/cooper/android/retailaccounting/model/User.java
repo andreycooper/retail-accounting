@@ -9,7 +9,7 @@ import org.parceler.Parcel;
 
 @Parcel
 public class User {
-    // non private fields for @Parcel
+    // default package fields for @Parcel
     String mUid;
     String mProvider;
     String mEmail;

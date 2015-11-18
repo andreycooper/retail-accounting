@@ -11,7 +11,7 @@ import org.parceler.Parcels;
 
 import by.cooper.android.retailaccounting.activity.PhoneActivity;
 import by.cooper.android.retailaccounting.model.Phone;
-import by.cooper.android.retailaccounting.util.Utils;
+import by.cooper.android.retailaccounting.util.DateTimeUtils;
 
 
 public class PhoneCardViewModel extends BaseObservable {
@@ -32,13 +32,13 @@ public class PhoneCardViewModel extends BaseObservable {
 
 
     public String getPhoneReceiveDate() {
-        return Utils.convertDateMillisToPattern(mPhone.getReceiveDate(), DD_MM_YYYY_PATTERN);
+        return DateTimeUtils.convertDateMillisToPattern(mPhone.getReceiveDate(), DD_MM_YYYY_PATTERN);
     }
 
     public String getPhoneSoldDate() {
         final long soldDate = mPhone.getSoldDate();
         if (soldDate > Phone.DEFAULT_DATE) {
-            return Utils.convertDateMillisToPattern(soldDate, DD_MM_YYYY_PATTERN);
+            return DateTimeUtils.convertDateMillisToPattern(soldDate, DD_MM_YYYY_PATTERN);
         } else {
             // TODO: get String from Resources
             return "Not sold yet";

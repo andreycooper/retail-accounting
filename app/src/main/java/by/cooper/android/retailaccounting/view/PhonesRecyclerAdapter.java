@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 
 import java.util.List;
 
-import by.cooper.android.retailaccounting.BR;
 import by.cooper.android.retailaccounting.R;
 import by.cooper.android.retailaccounting.model.Phone;
 import by.cooper.android.retailaccounting.viewmodel.PhoneCardViewModel;
@@ -33,7 +32,7 @@ public class PhonesRecyclerAdapter extends RecyclerView.Adapter<PhonesRecyclerAd
     public void onBindViewHolder(PhoneBindingHolder holder, int position) {
         final Phone phone = mPhones.get(position);
         final PhoneCardViewModel viewModel = new PhoneCardViewModel(phone);
-        holder.getBinding().setVariable(BR.phoneCardViewModel, viewModel);
+        holder.getBinding().setVariable(by.cooper.android.retailaccounting.BR.phoneCardViewModel, viewModel);
         holder.getBinding().executePendingBindings();
     }
 

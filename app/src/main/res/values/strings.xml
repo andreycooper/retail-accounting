@@ -49,4 +49,10 @@
     <string name="phone_item_label_sold_date">Sold:</string>
     <string name="phone_item_label_not_sold">Not sold yet</string>
 
+    <string name="phone_date_pattern">EEE, dd MMM  yyyy</string>
+    <string name="title_activity_custom_scanner">CustomScannerActivity</string>
+
+    <string name="turn_on_flashlight">Turn on Flashlight</string>
+    <string name="turn_off_flashlight">Turn off Flashlight</string>
+
 </resources>

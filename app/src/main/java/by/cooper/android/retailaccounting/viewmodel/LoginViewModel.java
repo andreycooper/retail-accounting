@@ -35,7 +35,7 @@ import by.cooper.android.retailaccounting.util.TextWatcherAdapter;
 import dagger.Lazy;
 
 
-@Parcel(Parcel.Serialization.BEAN)
+@Parcel(Parcel.Serialization.FIELD)
 public class LoginViewModel extends BaseObservable {
     public static final int EMPTY_RESOURCE_ID = 0;
     public static final String TAG = "LoginViewModel";
@@ -203,5 +203,7 @@ public class LoginViewModel extends BaseObservable {
     private boolean isValidEmail(@NonNull String email) {
         return !Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
+
+
 
 }

@@ -17,7 +17,7 @@ public class Phone implements Commodity {
 
     public static final int DEFAULT_DATE = 0;
 
-    // non private fields for @Parcel
+    // default package fields for @Parcel
     @JsonIgnore
     String mKey;
 

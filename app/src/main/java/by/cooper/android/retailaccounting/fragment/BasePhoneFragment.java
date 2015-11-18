@@ -1,11 +1,11 @@
 package by.cooper.android.retailaccounting.fragment;
 
 
+import android.app.Fragment;
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -17,6 +17,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
+
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 import org.parceler.Parcels;
 
@@ -27,10 +31,13 @@ import by.cooper.android.retailaccounting.viewmodel.PhoneViewModel;
 
 public abstract class BasePhoneFragment extends Fragment {
     public static final String PHONE = "by.cooper.android.retailaccounting.PHONE";
+    public static final String PHONE_VIEW_MODEL = "by.cooper.android.retailaccounting.PHONE_VIEW_MODEL";
     private static final String LOG_TAG = BasePhoneFragment.class.getSimpleName();
 
     @Nullable
     protected Phone mPhone;
+    @Nullable
+    protected PhoneViewModel mViewModel;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,7 +54,13 @@ public abstract class BasePhoneFragment extends Fragment {
                              Bundle savedInstanceState) {
         by.cooper.android.retailaccounting.databinding.FragmentPhoneBinding binding =
                 DataBindingUtil.inflate(inflater, R.layout.fragment_phone, container, false);
-        binding.setPhoneViewModel(getViewModel());
+        if (savedInstanceState != null && savedInstanceState.containsKey(PHONE_VIEW_MODEL)) {
+            mViewModel = Parcels.unwrap(savedInstanceState.getParcelable(PHONE_VIEW_MODEL));
+        }
+        if (mViewModel == null) {
+            mViewModel = getViewModel();
+        }
+        binding.setPhoneViewModel(mViewModel);
         View rootView = binding.getRoot();
         initUi(rootView);
         return rootView;
@@ -70,6 +83,44 @@ public abstract class BasePhoneFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mViewModel != null) {
+            mViewModel.onResume(this);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(PHONE_VIEW_MODEL, Parcels.wrap(mViewModel));
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // TODO: move code into viewModel, implement checking barcode and set it to model
+        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if (result != null) {
+            String toast;
+            if (result.getContents() == null) {
+                toast = "Cancelled from fragment";
+            } else {
+                toast = "Scanned from fragment: " + result.getContents();
+            }
+
+            // At this point we may or may not have a reference to the activity
+            displayToast(toast);
+        }
+    }
+
+    private void displayToast(String toast) {
+        if (getActivity() != null && toast != null) {
+            Toast.makeText(getActivity(), toast, Toast.LENGTH_LONG).show();
+        }
+    }
+
+
     protected abstract PhoneViewModel getViewModel();
 
     protected abstract int getTitle();
@@ -79,28 +130,21 @@ public abstract class BasePhoneFragment extends Fragment {
     private void initUi(View rootView) {
         initToolBar(rootView);
         initImageView(rootView, mPhone);
-        initFab(rootView);
     }
 
-    private void initFab(View rootView) {
-        FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
-    }
-
+    // TODO: move this method into viewModel and create bind adapter "imageUrl"
     private void initImageView(View rootView, Phone phone) {
         ImageView imageView = (ImageView) rootView.findViewById(R.id.backdrop);
-
         if (phone != null && !TextUtils.isEmpty(phone.getImageUrl())) {
             imageView.setVisibility(View.VISIBLE);
             // TODO: load Image from Firebase and decode from Base64;
         } else {
             imageView.setVisibility(View.GONE);
         }
-
     }
 
     private void initToolBar(View rootView) {
         Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
-
         AppCompatActivity activity = (AppCompatActivity) getActivity();
         activity.setSupportActionBar(toolbar);
         ActionBar supportActionBar = activity.getSupportActionBar();

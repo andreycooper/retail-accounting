@@ -85,10 +85,11 @@
                             android:layout_centerHorizontal="true"
                             android:layout_centerVertical="true"
                             android:ems="10"
-                            android:text="@{phoneViewModel.brand}"
                             android:hint="@string/hint_brand"
                             android:maxLines="@integer/edit_text_max_lines"
-                            android:singleLine="true"/>
+                            android:singleLine="true"
+                            android:text="@{phoneViewModel.brand}"
+                            app:addTextChangedListener="@{phoneViewModel.brandWatcher}"/>
 
                     </android.support.design.widget.TextInputLayout>
 
@@ -104,10 +105,11 @@
                             android:layout_centerHorizontal="true"
                             android:layout_centerVertical="true"
                             android:ems="10"
-                            android:text="@{phoneViewModel.model}"
                             android:hint="@string/hint_model"
                             android:maxLines="@integer/edit_text_max_lines"
-                            android:singleLine="true"/>
+                            android:singleLine="true"
+                            android:text="@{phoneViewModel.model}"
+                            app:addTextChangedListener="@{phoneViewModel.modelWatcher}"/>
 
                     </android.support.design.widget.TextInputLayout>
 
@@ -129,11 +131,12 @@
                                 android:layout_centerVertical="true"
                                 android:ems="10"
                                 android:hint="@string/hint_imei"
-                                android:text="@{phoneViewModel.imei}"
-                                android:inputType="numberDecimal"
+                                android:inputType="number"
                                 android:maxLength="@integer/imei_edit_text_max_length"
                                 android:maxLines="@integer/edit_text_max_lines"
-                                android:singleLine="true"/>
+                                android:singleLine="true"
+                                android:text="@{phoneViewModel.imei}"
+                                app:addTextChangedListener="@{phoneViewModel.imeiWatcher}"/>
 
                         </android.support.design.widget.TextInputLayout>
 
@@ -142,8 +145,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
                             android:layout_alignBottom="@id/imei_input_layout"
-                            android:onClick="@{phoneViewModel.onBarcodeClickListener}"
                             android:layout_toRightOf="@id/imei_input_layout"
+                            android:onClick="@{phoneViewModel.onBarcodeClickListener}"
                             android:src="@drawable/ic_barcode_black_48dp"
                             app:layout_widthPercent="20%"/>
 
@@ -175,6 +178,7 @@
                             android:layout_height="wrap_content"
                             android:layout_alignParentLeft="true"
                             android:layout_centerVertical="true"
+                            android:onClick="@{phoneViewModel.onDateClickListener}"
                             android:src="@drawable/ic_calendar_today_black_36dp"
                             app:layout_widthPercent="17%"/>
 
@@ -216,6 +220,7 @@
                             android:layout_height="wrap_content"
                             android:layout_alignParentLeft="true"
                             android:layout_centerVertical="true"
+                            android:onClick="@{phoneViewModel.onDateClickListener}"
                             android:src="@drawable/ic_calendar_black_36dp"
                             app:layout_widthPercent="17%"/>
 
@@ -248,6 +253,7 @@
                             android:layout_centerHorizontal="true"
                             android:layout_centerVertical="true"
                             android:layout_toRightOf="@id/sold_date_text"
+                            android:onClick="@{phoneViewModel.onSoldDeleteClickListener}"
                             android:src="@drawable/ic_close_black_24dp"
                             app:layout_widthPercent="10%"/>
                     </android.support.percent.PercentRelativeLayout>
@@ -265,6 +271,7 @@
             android:layout_marginBottom="@dimen/floating_action_button_margin"
             android:layout_marginEnd="@dimen/floating_action_button_margin"
             android:layout_marginRight="@dimen/floating_action_button_margin"
+            android:onClick="@{phoneViewModel.onFabClickListener}"
             android:src="@drawable/ic_camera_alt_white_24dp"
             app:borderWidth="@dimen/floating_action_button_border_width"
             app:elevation="@dimen/floating_action_button_elevation"
