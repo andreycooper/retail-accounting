@@ -17,7 +17,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
@@ -99,24 +98,12 @@ public abstract class BasePhoneFragment extends Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // TODO: move code into viewModel, implement checking barcode and set it to model
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
         if (result != null) {
-            String toast;
-            if (result.getContents() == null) {
-                toast = "Cancelled from fragment";
-            } else {
-                toast = "Scanned from fragment: " + result.getContents();
+            String content = result.getContents();
+            if (mViewModel != null && content != null) {
+                mViewModel.onBarcodeScan(content);
             }
-
-            // At this point we may or may not have a reference to the activity
-            displayToast(toast);
-        }
-    }
-
-    private void displayToast(String toast) {
-        if (getActivity() != null && toast != null) {
-            Toast.makeText(getActivity(), toast, Toast.LENGTH_LONG).show();
         }
     }
 

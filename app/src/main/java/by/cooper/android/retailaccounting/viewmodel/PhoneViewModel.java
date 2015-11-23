@@ -7,10 +7,12 @@ import android.databinding.BaseObservable;
 import android.databinding.Bindable;
 import android.databinding.ObservableField;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
@@ -150,11 +152,11 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     public TextWatcher getImeiWatcher() {
         return new TextWatcherAdapter() {
             @Override
-            public void afterTextChanged(Editable str) {
-                if (!Objects.equals(mPhone.getImei(), str.toString())) {
-                    mImeiError.set(null);
-                    if (isCorrectImei(str.toString())) {
-                        mPhone.setImei(str.toString());
+            public void afterTextChanged(Editable editable) {
+                String imei = editable.toString();
+                if (!Objects.equals(mPhone.getImei(), imei)) {
+                    if (isCorrectImei(imei)) {
+                        setImei(imei);
                     }
                 }
             }
@@ -177,8 +179,6 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
 
     public View.OnClickListener getOnBarcodeClickListener() {
         return v -> {
-            // TODO: implement barcode scanner
-            Log.d(TAG, "mPhone: " + mPhone.toString());
             IntentIntegrator
                     .forFragment(mFragmentWeakReference.get())
                     .setCaptureActivity(ScannerActivity.class)
@@ -189,7 +189,6 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
 
     public View.OnClickListener getOnSoldDeleteClickListener() {
         return v -> {
-            Log.d(TAG, "onSoldDeleteClick()");
             mPhone.setSoldDate(Phone.DEFAULT_DATE);
             notifyPropertyChanged(by.cooper.android.retailaccounting.BR.soldDate);
         };
@@ -214,6 +213,22 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
         }
     }
 
+    public void onBarcodeScan(@NonNull String barcode) {
+        if (!Objects.equals(mPhone.getImei(), barcode)) {
+            if (isCorrectImei(barcode)) {
+                setImei(barcode);
+            } else {
+                String error = mLazyResources.get().getString(R.string.phone_error_error_scan_barcode, barcode);
+                View rootView = mFragmentWeakReference.get().getView();
+                if (rootView != null) {
+                    Snackbar.make(rootView, error, Snackbar.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(mLazyContext.get(), error, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
+
     @Override
     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
         mDatePickerTag = null;
@@ -227,6 +242,13 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
         }
     }
 
+    private void setImei(@NonNull String imei) {
+        mImeiError.set(null);
+        mPhone.setImei(imei);
+        notifyPropertyChanged(by.cooper.android.retailaccounting.BR.imei);
+        notifyPropertyChanged(by.cooper.android.retailaccounting.BR.imeiError);
+    }
+
     private String getConvertedDate(final long millis) {
         return DateTimeUtils.convertDateMillisToPattern(DateTimeZone.UTC.convertUTCToLocal(millis),
                 mLazyResources.get().getString(R.string.phone_date_pattern));
@@ -238,7 +260,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
         }
     }
 
-    private boolean isCorrectImei(final String imei) {
+    private boolean isCorrectImei(@NonNull final String imei) {
         return imei.matches("\\d{15}");
     }
 
