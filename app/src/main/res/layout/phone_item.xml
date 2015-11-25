@@ -127,7 +127,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:padding="@dimen/phone_item_content_label_padding"
-                        android:text="@{phoneCardViewModel.phoneSoldDate}"
+                        android:text="@{phoneCardViewModel.phoneSold ? phoneCardViewModel.phoneSoldDate : @string/phone_item_label_not_sold}"
                         android:textSize="@dimen/phone_item_content_label_text_size"/>
 
                 </LinearLayout>
@@ -175,7 +175,7 @@
                     android:layout_alignParentLeft="true"
                     android:layout_marginLeft="@dimen/phone_item_action_horizontal_margin"
                     android:layout_marginRight="@dimen/phone_item_action_horizontal_margin"
-                    android:onClick="@{phoneCardViewModel.onDeleteClickListener}"
+                    android:onClick="@{phoneCardViewModel.onDeleteClick}"
                     android:padding="@dimen/phone_item_action_padding"
                     android:src="@drawable/ic_delete_grey600_24dp"/>
 
@@ -186,7 +186,7 @@
                     android:layout_alignBottom="@id/delete_image_view"
                     android:layout_alignTop="@id/delete_image_view"
                     android:layout_toRightOf="@id/delete_image_view"
-                    android:onClick="@{phoneCardViewModel.onEditClickListener}"
+                    android:onClick="@{phoneCardViewModel.onEditClick}"
                     android:padding="@dimen/phone_item_action_padding"
                     android:src="@drawable/ic_pencil_grey600_24dp"/>
 
@@ -199,7 +199,7 @@
                     android:layout_alignTop="@id/delete_image_view"
                     android:layout_marginLeft="@dimen/phone_item_action_horizontal_margin"
                     android:layout_marginRight="@dimen/phone_item_action_horizontal_margin"
-                    android:onClick="@{phoneCardViewModel.onCheckClickListener}"
+                    android:onClick="@{phoneCardViewModel.onCheckClick}"
                     android:padding="@dimen/phone_item_action_padding"
                     android:src="@drawable/ic_check_grey600_24dp"
                     android:visibility="@{phoneCardViewModel.phoneSold ? View.INVISIBLE : View.VISIBLE}"/>

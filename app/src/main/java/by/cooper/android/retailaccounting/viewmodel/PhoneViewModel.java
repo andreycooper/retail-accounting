@@ -9,7 +9,6 @@ import android.databinding.ObservableField;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -33,7 +32,6 @@ import by.cooper.android.retailaccounting.fragment.BasePhoneFragment;
 import by.cooper.android.retailaccounting.model.Phone;
 import by.cooper.android.retailaccounting.util.DateTimeUtils;
 import by.cooper.android.retailaccounting.util.Objects;
-import by.cooper.android.retailaccounting.util.TextWatcherAdapter;
 import dagger.Lazy;
 
 
@@ -48,11 +46,11 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     String mDatePickerTag;
 
     @Bindable
-    ObservableField<String> mBrandError = new ObservableField<>();
+    public ObservableField<String> brandError = new ObservableField<>();
     @Bindable
-    ObservableField<String> mModelError = new ObservableField<>();
+    public ObservableField<String> modelError = new ObservableField<>();
     @Bindable
-    ObservableField<String> mImeiError = new ObservableField<>();
+    public ObservableField<String> imeiError = new ObservableField<>();
 
     @Inject
     @Transient
@@ -125,80 +123,57 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
         }
     }
 
-    public TextWatcher getBrandWatcher() {
-        return new TextWatcherAdapter() {
-            @Override
-            public void afterTextChanged(Editable str) {
-                if (!Objects.equals(mPhone.getBrand(), str.toString())) {
-                    mBrandError.set(null);
-                    mPhone.setBrand(str.toString());
-                }
+    public void onBrandChanged(Editable str) {
+        if (!Objects.equals(mPhone.getBrand(), str.toString())) {
+            brandError.set(null);
+            mPhone.setBrand(str.toString());
+        }
+    }
+
+    public void onModelChanged(Editable str) {
+        if (!Objects.equals(mPhone.getModel(), str.toString())) {
+            modelError.set(null);
+            mPhone.setModel(str.toString());
+        }
+    }
+
+    public void onImeiChanged(Editable str) {
+        String imei = str.toString();
+        if (!Objects.equals(mPhone.getImei(), imei)) {
+            if (isCorrectImei(imei)) {
+                setImei(imei);
             }
-        };
+        }
     }
 
-    public TextWatcher getModelWatcher() {
-        return new TextWatcherAdapter() {
-            @Override
-            public void afterTextChanged(Editable str) {
-                if (!Objects.equals(mPhone.getModel(), str.toString())) {
-                    mModelError.set(null);
-                    mPhone.setModel(str.toString());
-                }
-            }
-        };
+    public void onDateClick(View view) {
+        DatePickerDialog dialog;
+        if (view.getId() == R.id.receive_date_image_view) {
+            mDatePickerTag = RECEIVE_DATE_PICKER_TAG;
+            dialog = getReceivePickerDialog();
+        } else {
+            mDatePickerTag = SOLD_DATE_PICKER_TAG;
+            dialog = getSoldPickerDialog();
+        }
+        dialog.show(mFragmentWeakReference.get().getFragmentManager(), mDatePickerTag);
     }
 
-    public TextWatcher getImeiWatcher() {
-        return new TextWatcherAdapter() {
-            @Override
-            public void afterTextChanged(Editable editable) {
-                String imei = editable.toString();
-                if (!Objects.equals(mPhone.getImei(), imei)) {
-                    if (isCorrectImei(imei)) {
-                        setImei(imei);
-                    }
-                }
-            }
-        };
+    public void onBarcodeClick(View view) {
+        IntentIntegrator
+                .forFragment(mFragmentWeakReference.get())
+                .setCaptureActivity(ScannerActivity.class)
+                .setDesiredBarcodeFormats(IntentIntegrator.ONE_D_CODE_TYPES)
+                .initiateScan();
     }
 
-    public View.OnClickListener getOnDateClickListener() {
-        return v -> {
-            DatePickerDialog dialog;
-            if (v.getId() == R.id.receive_date_image_view) {
-                mDatePickerTag = RECEIVE_DATE_PICKER_TAG;
-                dialog = getReceivePickerDialog();
-            } else {
-                mDatePickerTag = SOLD_DATE_PICKER_TAG;
-                dialog = getSoldPickerDialog();
-            }
-            dialog.show(mFragmentWeakReference.get().getFragmentManager(), mDatePickerTag);
-        };
+    public void onSoldDeleteClick(View view) {
+        mPhone.setSoldDate(Phone.DEFAULT_DATE);
+        notifyPropertyChanged(by.cooper.android.retailaccounting.BR.soldDate);
     }
 
-    public View.OnClickListener getOnBarcodeClickListener() {
-        return v -> {
-            IntentIntegrator
-                    .forFragment(mFragmentWeakReference.get())
-                    .setCaptureActivity(ScannerActivity.class)
-                    .setDesiredBarcodeFormats(IntentIntegrator.ONE_D_CODE_TYPES)
-                    .initiateScan();
-        };
-    }
-
-    public View.OnClickListener getOnSoldDeleteClickListener() {
-        return v -> {
-            mPhone.setSoldDate(Phone.DEFAULT_DATE);
-            notifyPropertyChanged(by.cooper.android.retailaccounting.BR.soldDate);
-        };
-    }
-
-    public View.OnClickListener getOnFabClickListener() {
-        return v -> {
-            // TODO: implement taking photo
-            Log.d(TAG, "onFabClick()");
-        };
+    public void onPhotoFabClick(View view) {
+        // TODO: implement taking photo
+        Log.d(TAG, "onPhotoFabClick()");
     }
 
     public void onResume(@NonNull final BasePhoneFragment fragment) {
@@ -243,7 +218,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     }
 
     private void setImei(@NonNull String imei) {
-        mImeiError.set(null);
+        imeiError.set(null);
         mPhone.setImei(imei);
         notifyPropertyChanged(by.cooper.android.retailaccounting.BR.imei);
         notifyPropertyChanged(by.cooper.android.retailaccounting.BR.imeiError);

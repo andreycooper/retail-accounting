@@ -3,6 +3,7 @@ package by.cooper.android.retailaccounting.viewmodel;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.BaseObservable;
+import android.databinding.Bindable;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.Toast;
@@ -30,54 +31,53 @@ public class PhoneCardViewModel extends BaseObservable {
         return mPhone;
     }
 
-
+    @Bindable
     public String getPhoneReceiveDate() {
         return DateTimeUtils.convertDateMillisToPattern(mPhone.getReceiveDate(), DD_MM_YYYY_PATTERN);
     }
 
+    @Bindable
     public String getPhoneSoldDate() {
-        final long soldDate = mPhone.getSoldDate();
-        if (soldDate > Phone.DEFAULT_DATE) {
-            return DateTimeUtils.convertDateMillisToPattern(soldDate, DD_MM_YYYY_PATTERN);
-        } else {
-            // TODO: get String from Resources
-            return "Not sold yet";
-        }
+        return DateTimeUtils.convertDateMillisToPattern(mPhone.getSoldDate(), DD_MM_YYYY_PATTERN);
     }
 
+    @Bindable
     public String getPhoneBrand() {
         return mPhone.getBrand();
     }
 
+    @Bindable
     public String getPhoneModel() {
         return mPhone.getModel();
     }
 
+    @Bindable
     public String getPhoneImei() {
         return mPhone.getImei();
     }
 
+    @Bindable
     public boolean isPhoneSold() {
         return mPhone.getSoldDate() > Phone.DEFAULT_DATE;
     }
 
-    public View.OnClickListener getOnDeleteClickListener() {
-        return view -> Toast.makeText(view.getContext(),
+    public void onDeleteClick(View view) {
+        // TODO: implement deleting phone from Firebase
+        Toast.makeText(view.getContext(),
                 "Delete phone with IMEI: " + mPhone.getImei() + "\nKey in DB: " + mPhone.getKey(),
                 Toast.LENGTH_SHORT).show();
     }
 
-    public View.OnClickListener getOnEditClickListener() {
-        return view -> {
-            Context context = view.getContext();
-            Intent intent = new Intent(context, PhoneActivity.class);
-            intent.putExtra(PhoneActivity.PHONE_KEY, Parcels.wrap(mPhone));
-            context.startActivity(intent);
-        };
+    public void onEditClick(View view) {
+        Context context = view.getContext();
+        Intent intent = new Intent(context, PhoneActivity.class);
+        intent.putExtra(PhoneActivity.PHONE_KEY, Parcels.wrap(mPhone));
+        context.startActivity(intent);
     }
 
-    public View.OnClickListener getOnCheckClickListener() {
-        return view -> Toast.makeText(view.getContext(),
+    public void onCheckClick(View view) {
+        // TODO: implement sale phone
+        Toast.makeText(view.getContext(),
                 "Sold phone with IMEI: " + mPhone.getImei() + "\nKey in DB: " + mPhone.getKey(),
                 Toast.LENGTH_SHORT).show();
     }

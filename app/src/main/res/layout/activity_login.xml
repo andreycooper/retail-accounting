@@ -45,13 +45,13 @@
                         android:id="@+id/email"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:enabled="@{loginViewModel.isLoginInProgress ? false : true}"
+                        android:afterTextChanged="@{loginViewModel.onEmailChanged}"
+                        android:enabled="@{!loginViewModel.isLoginInProgress}"
                         android:hint="@string/prompt_email"
                         android:inputType="textEmailAddress"
                         android:maxLines="1"
-                        android:singleLine="true"
-                        app:addTextChangedListener="@{loginViewModel.emailWatcher}"
-                        app:onFocusChangeListener="@{loginViewModel.emailFocusListener}"/>
+                        android:onFocusChange="@{loginViewModel.onEmailFocusChange}"
+                        android:singleLine="true"/>
                 </android.support.design.widget.TextInputLayout>
 
                 <android.support.design.widget.TextInputLayout
@@ -63,16 +63,16 @@
                         android:id="@+id/password"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:enabled="@{loginViewModel.isLoginInProgress ? false : true}"
+                        android:afterTextChanged="@{loginViewModel.onPasswordChanged}"
+                        android:enabled="@{!loginViewModel.isLoginInProgress}"
                         android:hint="@string/prompt_password"
                         android:imeActionId="@+id/login"
                         android:imeActionLabel="@string/action_sign_in_short"
                         android:imeOptions="actionUnspecified"
                         android:inputType="textPassword"
                         android:maxLines="1"
-                        android:singleLine="true"
-                        app:addTextChangedListener="@{loginViewModel.passwordWatcher}"
-                        app:onFocusChangeListener="@{loginViewModel.passwordFocusListener}"/>
+                        android:onFocusChange="@{loginViewModel.onPasswordFocusChange}"
+                        android:singleLine="true"/>
                 </android.support.design.widget.TextInputLayout>
 
                 <Button
@@ -81,9 +81,9 @@
                     android:layout_width="@dimen/login_button_width"
                     android:layout_height="@dimen/login_button_height"
                     android:layout_gravity="center_horizontal"
-                    android:enabled="@{loginViewModel.isLoginInProgress ? false : true}"
                     android:layout_marginTop="@dimen/login_button_margin"
-                    android:onClick="@{loginViewModel.loginClickListener}"
+                    android:enabled="@{!loginViewModel.isLoginInProgress}"
+                    android:onClick="@{loginViewModel.onClickLogin}"
                     android:text="@string/action_sign_in"
                     android:textStyle="bold"/>
 

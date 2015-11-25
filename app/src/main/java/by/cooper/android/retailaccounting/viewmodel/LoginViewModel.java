@@ -6,13 +6,13 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.databinding.BaseObservable;
 import android.databinding.Bindable;
+import android.databinding.ObservableBoolean;
 import android.databinding.ObservableField;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.util.Patterns;
 import android.view.View;
 
@@ -28,10 +28,8 @@ import by.cooper.android.retailaccounting.App;
 import by.cooper.android.retailaccounting.R;
 import by.cooper.android.retailaccounting.activity.HomeActivity;
 import by.cooper.android.retailaccounting.firebase.auth.AuthManager;
-import by.cooper.android.retailaccounting.model.User;
-import by.cooper.android.retailaccounting.util.Events;
+import by.cooper.android.retailaccounting.util.Events.FirebaseLoginEvent;
 import by.cooper.android.retailaccounting.util.Objects;
-import by.cooper.android.retailaccounting.util.TextWatcherAdapter;
 import dagger.Lazy;
 
 
@@ -50,7 +48,7 @@ public class LoginViewModel extends BaseObservable {
     @Bindable
     public ObservableField<String> passwordError = new ObservableField<>();
     @Bindable
-    public ObservableField<Boolean> isLoginInProgress = new ObservableField<>(false);
+    public ObservableBoolean isLoginInProgress = new ObservableBoolean(false);
 
     @Inject
     @Transient
@@ -59,81 +57,62 @@ public class LoginViewModel extends BaseObservable {
     public LoginViewModel() {
     }
 
-    public void setUser(@NonNull User user) {
-        email.set(user.getEmail());
-        password.set(user.getPass());
+    public void onEmailChanged(Editable str) {
+        if (!Objects.equals(email.get(), str.toString())) {
+            emailError.set(null);
+            email.set(str.toString());
+        }
     }
 
-    public TextWatcher getEmailWatcher() {
-        return new TextWatcherAdapter() {
-            @Override
-            public void afterTextChanged(Editable str) {
-                if (!Objects.equals(email.get(), str.toString())) {
-                    emailError.set(null);
-                    email.set(str.toString());
-                }
-            }
-        };
+    public void onPasswordChanged(Editable str) {
+        if (!Objects.equals(password.get(), str.toString())) {
+            passwordError.set(null);
+            password.set(str.toString());
+        }
     }
 
-    public TextWatcher getPasswordWatcher() {
-        return new TextWatcherAdapter() {
-            @Override
-            public void afterTextChanged(Editable str) {
-                if (!Objects.equals(password.get(), str.toString())) {
-                    passwordError.set(null);
-                    password.set(str.toString());
-                }
-            }
-        };
+    public void onClickLogin(View view) {
+        if (mLazyAuthManager == null) {
+            App.get(view.getContext()).getLoginComponent().inject(LoginViewModel.this);
+        }
+        String emailString = email.get() != null ? email.get().trim() : "";
+        String passwordString = password.get() != null ? password.get().trim() : "";
+        if (validate(view.getResources(), emailString, passwordString)) {
+            mLazyAuthManager.get().login(emailString, passwordString);
+            isLoginInProgress.set(true);
+        }
     }
 
-    public View.OnClickListener getLoginClickListener() {
-        return view -> {
-            if (mLazyAuthManager == null) {
-                App.get(view.getContext()).getLoginComponent().inject(LoginViewModel.this);
-            }
-            String emailString = email.get() != null ? email.get().trim() : "";
-            String passwordString = password.get() != null ? password.get().trim() : "";
-            if (validate(view.getResources(), emailString, passwordString)) {
-                mLazyAuthManager.get().login(emailString, passwordString);
-                isLoginInProgress.set(true);
-            }
-        };
+    public void onEmailFocusChange(View view, boolean hasFocus) {
+        if (hasFocus) {
+            setEmailError(view.getResources(), EMPTY_RESOURCE_ID);
+        }
     }
 
-    public View.OnFocusChangeListener getEmailFocusListener() {
-        return (view, hasFocus) -> {
-            if (hasFocus) {
-                setEmailError(view.getResources(), EMPTY_RESOURCE_ID);
-            }
-        };
+    public void onPasswordFocusChange(View view, boolean hasFocus) {
+        if (hasFocus) {
+            setPasswordError(view.getResources(), EMPTY_RESOURCE_ID);
+        }
     }
 
-    public View.OnFocusChangeListener getPasswordFocusListener() {
-        return (view, hasFocus) -> {
-            if (hasFocus) {
-                setPasswordError(view.getResources(), EMPTY_RESOURCE_ID);
-            }
-        };
-    }
-
-    public void onReceiveLoginEvent(Activity activity, Events.FirebaseLoginEvent loginEvent) {
+    public void onReceiveLoginEvent(@NonNull Activity activity, @NonNull FirebaseLoginEvent loginEvent) {
         isLoginInProgress.set(false);
         View rootView = activity.findViewById(android.R.id.content);
         if (loginEvent.isSuccess()) {
             setLoginSuccess(rootView, loginEvent.getAuthData());
         } else {
-            setLoginError(rootView, loginEvent.getFirebaseError());
+            if (loginEvent.getFirebaseError() != null) {
+                setLoginError(rootView, loginEvent.getFirebaseError());
+            }
         }
     }
 
-    private void setLoginSuccess(View view, AuthData authData) {
+    private void setLoginSuccess(@NonNull View view, AuthData authData) {
         Context context = view.getContext();
         context.startActivity(new Intent(context, HomeActivity.class));
     }
 
-    private void setLoginError(View view, FirebaseError firebaseError) {
+    private void setLoginError(@NonNull View view, @NonNull FirebaseError firebaseError) {
         Resources resources = view.getResources();
         String errorMessage;
         switch (firebaseError.getCode()) {
@@ -203,7 +182,5 @@ public class LoginViewModel extends BaseObservable {
     private boolean isValidEmail(@NonNull String email) {
         return !Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
-
-
 
 }
