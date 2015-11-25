@@ -8,7 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.widget.Toast;
+import android.util.Log;
 
 import com.firebase.client.FirebaseError;
 
@@ -59,20 +59,24 @@ public class HomeActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-        mRepo.requestItems(new ResultReceiver<Phone>() {
-            @Override
-            public void onReceive(List<Phone> itemList) {
-                adapter.setPhones(itemList);
-            }
-
-            @Override
-            public void onError(FirebaseError error) {
-                Toast.makeText(HomeActivity.this, "error: " + error.getDetails(), Toast.LENGTH_SHORT).show();
-            }
-        });
-
         if (mAuthManager.isLoggedIn()) {
-            Toast.makeText(this, "Login is Ok!", Toast.LENGTH_SHORT).show();
+            Log.d("HomeActivity", "Login is Ok, request items");
+            mRepo.requestItems(new ResultReceiver<Phone>() {
+                @Override
+                public void onReceive(List<Phone> itemList) {
+                    adapter.setPhones(itemList);
+                }
+
+                @Override
+                public void onError(FirebaseError error) {
+                    Snackbar.make(HomeActivity.this.findViewById(R.id.home_layout),
+                            HomeActivity.this.getString(R.string.error_loading, error.getDetails()),
+                            Snackbar.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Log.d("HomeActivity", "Login is failed!");
+            // TODO: notify user and start login screen
         }
     }
 
