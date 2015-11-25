@@ -23,9 +23,12 @@ android {
         multiDexEnabled true
     }
     buildTypes {
-        release {
+        debug {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            minifyEnabled true
+            proguardFile 'proguard-rules.pro'
         }
     }
     compileOptions {
@@ -52,7 +55,7 @@ retrolambda {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':zxing-android-embedded')
+    compile project(":zxing-android-embedded")
     testCompile 'junit:junit:4.12'
 
     // Support libs
@@ -62,7 +65,7 @@ dependencies {
     compile "com.android.support:recyclerview-v7:$supportLibraryVersion"
     compile "com.android.support:percent:$supportLibraryVersion"
     compile 'com.android.support:multidex:1.0.1'
-    apt 'com.android.databinding:compiler:1.0-rc3'
+    apt 'com.android.databinding:compiler:1.0-rc4'
 
     // Rx
     compile 'io.reactivex:rxjava:1.0.16'
@@ -81,8 +84,8 @@ dependencies {
 
     // Network libs
     compile 'com.squareup.okio:okio:1.6.0'
-    compile 'com.squareup.okhttp:okhttp:2.5.0'
-    compile 'com.squareup.okhttp:okhttp-urlconnection:2.5.0'
+    compile 'com.squareup.okhttp:okhttp:2.6.0'
+    compile 'com.squareup.okhttp:okhttp-urlconnection:2.6.0'
     compile 'com.squareup.retrofit:retrofit:1.9.0'
 
     // Debug libs
