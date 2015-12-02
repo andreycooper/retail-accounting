@@ -2,15 +2,16 @@ package by.cooper.android.retailaccounting.viewmodel;
 
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.databinding.BaseObservable;
 import android.databinding.Bindable;
 import android.databinding.ObservableField;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -28,6 +29,8 @@ import javax.inject.Inject;
 import by.cooper.android.retailaccounting.App;
 import by.cooper.android.retailaccounting.R;
 import by.cooper.android.retailaccounting.activity.ScannerActivity;
+import by.cooper.android.retailaccounting.firebase.PhonesRepository;
+import by.cooper.android.retailaccounting.firebase.SuggestionReceiver;
 import by.cooper.android.retailaccounting.fragment.BasePhoneFragment;
 import by.cooper.android.retailaccounting.model.Phone;
 import by.cooper.android.retailaccounting.util.DateTimeUtils;
@@ -54,11 +57,11 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
 
     @Inject
     @Transient
-    Lazy<Resources> mLazyResources;
+    Lazy<Context> mLazyContext;
 
     @Inject
     @Transient
-    Lazy<Context> mLazyContext;
+    Lazy<PhonesRepository> mLazyRepository;
 
     @Transient
     WeakReference<BasePhoneFragment> mFragmentWeakReference;
@@ -77,7 +80,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     }
 
     private PhoneViewModel(@NonNull final Context context) {
-        App.get(context).getAppComponent().inject(this);
+        inject(context);
         mPhone = new Phone();
     }
 
@@ -87,7 +90,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     }
 
     public PhoneViewModel(@NonNull final Context context, @NonNull final Phone phone) {
-        App.get(context).getAppComponent().inject(this);
+        inject(context);
         mPhone = phone;
     }
 
@@ -119,22 +122,48 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
         if (mPhone.getSoldDate() > 0) {
             return getConvertedDate(mPhone.getSoldDate());
         } else {
-            return mLazyResources.get().getString(R.string.phone_item_label_not_sold);
+            return mLazyContext.get().getString(R.string.phone_item_label_not_sold);
         }
     }
 
     public void onBrandChanged(Editable str) {
-        if (!Objects.equals(mPhone.getBrand(), str.toString())) {
+        final String brand = str.toString().trim();
+        if (!Objects.equals(mPhone.getBrand(), brand)) {
             brandError.set(null);
-            mPhone.setBrand(str.toString());
+            mPhone.setBrand(brand);
+            if (!TextUtils.isEmpty(brand)) {
+                final SuggestionReceiver suggestionReceiver = mFragmentWeakReference.get();
+                mLazyRepository.get()
+                        .getBrandSuggestions(brand)
+                        .subscribe(suggestionReceiver::onBrandsReceived, throwable -> {
+                            suggestionReceiver.clearSuggestions();
+                        });
+            }
         }
     }
 
+    public void onBrandItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Log.d(TAG, parent.getAdapter().getItem(position).toString());
+    }
+
     public void onModelChanged(Editable str) {
-        if (!Objects.equals(mPhone.getModel(), str.toString())) {
+        final String model = str.toString().trim();
+        if (!Objects.equals(mPhone.getModel(), model)) {
             modelError.set(null);
-            mPhone.setModel(str.toString());
+            mPhone.setModel(model);
+            if (!TextUtils.isEmpty(mPhone.getBrand())) {
+                final SuggestionReceiver suggestionReceiver = mFragmentWeakReference.get();
+                mLazyRepository.get()
+                        .getModelSuggestionsByBrand(mPhone.getBrand(), model)
+                        .subscribe(suggestionReceiver::onModelsReceived, throwable -> {
+                            suggestionReceiver.clearSuggestions();
+                        });
+            }
         }
+    }
+
+    public void onModelItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Log.d(TAG, parent.getAdapter().getItem(position).toString());
     }
 
     public void onImeiChanged(Editable str) {
@@ -174,6 +203,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     public void onPhotoFabClick(View view) {
         // TODO: implement taking photo
         Log.d(TAG, "onPhotoFabClick()");
+        Log.d(TAG, mPhone.toString());
     }
 
     public void onResume(@NonNull final BasePhoneFragment fragment) {
@@ -193,7 +223,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
             if (isCorrectImei(barcode)) {
                 setImei(barcode);
             } else {
-                String error = mLazyResources.get().getString(R.string.phone_error_error_scan_barcode, barcode);
+                String error = mLazyContext.get().getString(R.string.phone_error_error_scan_barcode, barcode);
                 View rootView = mFragmentWeakReference.get().getView();
                 if (rootView != null) {
                     Snackbar.make(rootView, error, Snackbar.LENGTH_SHORT).show();
@@ -226,12 +256,16 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
 
     private String getConvertedDate(final long millis) {
         return DateTimeUtils.convertDateMillisToPattern(DateTimeZone.UTC.convertUTCToLocal(millis),
-                mLazyResources.get().getString(R.string.phone_date_pattern));
+                mLazyContext.get().getString(R.string.phone_date_pattern));
+    }
+
+    private void inject(Context context) {
+        App.get(context).getPhonesComponent().inject(this);
     }
 
     private void lazyInject(BasePhoneFragment fragment) {
-        if (mLazyResources == null || mLazyContext == null) {
-            App.get(fragment.getActivity()).getAppComponent().inject(this);
+        if (mLazyContext == null || mLazyRepository == null) {
+            inject(fragment.getActivity());
         }
     }
 

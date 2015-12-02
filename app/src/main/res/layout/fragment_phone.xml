@@ -86,9 +86,11 @@
                             android:layout_centerHorizontal="true"
                             android:layout_centerVertical="true"
                             android:afterTextChanged="@{phoneViewModel.onBrandChanged}"
-                            android:ems="10"
+                            android:completionThreshold="@integer/autocomplete_threshold"
+                            android:ems="@integer/edit_text_ems"
                             android:hint="@string/hint_brand"
                             android:maxLines="@integer/edit_text_max_lines"
+                            android:onItemClick="@{phoneViewModel.onBrandItemClick}"
                             android:singleLine="true"
                             android:text="@{phoneViewModel.brand}"/>
 
@@ -107,9 +109,11 @@
                             android:layout_centerHorizontal="true"
                             android:layout_centerVertical="true"
                             android:afterTextChanged="@{phoneViewModel.onModelChanged}"
-                            android:ems="10"
+                            android:completionThreshold="@integer/autocomplete_threshold"
+                            android:ems="@integer/edit_text_ems"
                             android:hint="@string/hint_model"
                             android:maxLines="@integer/edit_text_max_lines"
+                            android:onItemClick="@{phoneViewModel.onModelItemClick}"
                             android:singleLine="true"
                             android:text="@{phoneViewModel.model}"/>
 
@@ -133,7 +137,7 @@
                                 android:layout_centerHorizontal="true"
                                 android:layout_centerVertical="true"
                                 android:afterTextChanged="@{phoneViewModel.onImeiChanged}"
-                                android:ems="10"
+                                android:ems="@integer/edit_text_ems"
                                 android:hint="@string/hint_imei"
                                 android:inputType="number"
                                 android:maxLength="@integer/imei_edit_text_max_length"

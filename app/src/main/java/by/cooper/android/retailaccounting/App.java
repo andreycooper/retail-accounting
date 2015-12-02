@@ -8,20 +8,16 @@ import com.firebase.client.Firebase;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
-import by.cooper.android.retailaccounting.dagger.component.AppComponent;
-import by.cooper.android.retailaccounting.dagger.component.DaggerAppComponent;
 import by.cooper.android.retailaccounting.dagger.component.DaggerLoginComponent;
 import by.cooper.android.retailaccounting.dagger.component.DaggerPhonesComponent;
 import by.cooper.android.retailaccounting.dagger.component.LoginComponent;
 import by.cooper.android.retailaccounting.dagger.component.PhonesComponent;
-import by.cooper.android.retailaccounting.dagger.module.AppModule;
 import by.cooper.android.retailaccounting.dagger.module.FirebaseModule;
 import by.cooper.android.retailaccounting.dagger.module.LoginModule;
 import by.cooper.android.retailaccounting.dagger.module.PhonesModule;
 
 
 public class App extends Application {
-    private AppComponent mAppComponent;
     private LoginComponent mLoginComponent;
     private PhonesComponent mPhonesComponent;
 
@@ -42,14 +38,10 @@ public class App extends Application {
     }
 
     private void initComponents() {
-        AppModule appModule = new AppModule(this);
         FirebaseModule firebaseModule = new FirebaseModule(this);
         LoginModule loginModule = new LoginModule();
         PhonesModule phonesModule = new PhonesModule();
 
-        mAppComponent = DaggerAppComponent.builder()
-                .appModule(appModule)
-                .build();
         mLoginComponent = DaggerLoginComponent.builder()
                 .firebaseModule(firebaseModule)
                 .loginModule(loginModule)
@@ -74,7 +66,4 @@ public class App extends Application {
         return mPhonesComponent;
     }
 
-    public AppComponent getAppComponent() {
-        return mAppComponent;
-    }
 }

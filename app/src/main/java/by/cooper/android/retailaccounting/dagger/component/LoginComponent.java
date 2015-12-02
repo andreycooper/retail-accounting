@@ -1,5 +1,7 @@
 package by.cooper.android.retailaccounting.dagger.component;
 
+import android.content.Context;
+
 import javax.inject.Singleton;
 
 import by.cooper.android.retailaccounting.activity.LaunchActivity;
@@ -16,6 +18,8 @@ import dagger.Component;
         LoginModule.class})
 @Singleton
 public interface LoginComponent {
+
+    Context appContext();
 
     AuthStorage authStorage();
 

@@ -16,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -23,12 +24,17 @@ import com.google.zxing.integration.android.IntentResult;
 
 import org.parceler.Parcels;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import by.cooper.android.retailaccounting.R;
+import by.cooper.android.retailaccounting.databinding.FragmentPhoneBinding;
 import by.cooper.android.retailaccounting.model.Phone;
+import by.cooper.android.retailaccounting.firebase.SuggestionReceiver;
 import by.cooper.android.retailaccounting.viewmodel.PhoneViewModel;
 
 
-public abstract class BasePhoneFragment extends Fragment {
+public abstract class BasePhoneFragment extends Fragment implements SuggestionReceiver {
     public static final String PHONE = "by.cooper.android.retailaccounting.PHONE";
     public static final String PHONE_VIEW_MODEL = "by.cooper.android.retailaccounting.PHONE_VIEW_MODEL";
     private static final String LOG_TAG = BasePhoneFragment.class.getSimpleName();
@@ -37,6 +43,9 @@ public abstract class BasePhoneFragment extends Fragment {
     protected Phone mPhone;
     @Nullable
     protected PhoneViewModel mViewModel;
+
+    private ArrayAdapter<String> mBrandSuggestionAdapter;
+    private ArrayAdapter<String> mModelSuggestionAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -62,6 +71,7 @@ public abstract class BasePhoneFragment extends Fragment {
         binding.setPhoneViewModel(mViewModel);
         View rootView = binding.getRoot();
         initUi(rootView);
+        setAdapters(binding);
         return rootView;
     }
 
@@ -107,6 +117,23 @@ public abstract class BasePhoneFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onBrandsReceived(List<String> brandList) {
+        mBrandSuggestionAdapter.clear();
+        mBrandSuggestionAdapter.addAll(brandList);
+    }
+
+    @Override
+    public void onModelsReceived(List<String> modelList) {
+        mModelSuggestionAdapter.clear();
+        mModelSuggestionAdapter.addAll(modelList);
+    }
+
+    @Override
+    public void clearSuggestions() {
+        mBrandSuggestionAdapter.clear();
+        mModelSuggestionAdapter.clear();
+    }
 
     protected abstract PhoneViewModel getViewModel();
 
@@ -140,6 +167,15 @@ public abstract class BasePhoneFragment extends Fragment {
             supportActionBar.setDisplayHomeAsUpEnabled(true);
             supportActionBar.setTitle(getTitle());
         }
+    }
+
+    private void setAdapters(FragmentPhoneBinding binding) {
+        mBrandSuggestionAdapter = new ArrayAdapter<>(getActivity(),
+                android.R.layout.simple_list_item_1, new ArrayList<>());
+        mModelSuggestionAdapter = new ArrayAdapter<>(getActivity(),
+                android.R.layout.simple_list_item_1, new ArrayList<>());
+        binding.brandEditText.setAdapter(mBrandSuggestionAdapter);
+        binding.modelEditText.setAdapter(mModelSuggestionAdapter);
     }
 
 }

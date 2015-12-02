@@ -6,16 +6,14 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import by.cooper.android.retailaccounting.model.Commodity;
+import rx.Observable;
 
 
 public class SingleRequest<T extends Commodity> implements ValueEventListener {
 
-    private ResultReceiver<T> mReceiver;
-    private Class<T> mClassType;
+    private final ResultReceiver<T> mReceiver;
+    private final Class<T> mClassType;
 
     public SingleRequest(@NonNull ResultReceiver<T> receiver, @NonNull Class<T> classType) {
         mReceiver = receiver;
@@ -24,14 +22,15 @@ public class SingleRequest<T extends Commodity> implements ValueEventListener {
 
     @Override
     public void onDataChange(DataSnapshot dataSnapshot) {
-        List<T> itemList = new ArrayList<>();
-        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-            System.out.println(snapshot);
-            T object = snapshot.getValue(mClassType);
-            object.setKey(snapshot.getKey());
-            itemList.add(object);
-        }
-        mReceiver.onReceive(itemList);
+        Observable.from(dataSnapshot.getChildren())
+                .map(snapshot -> {
+                    System.out.println(snapshot);
+                    T object = snapshot.getValue(mClassType);
+                    object.setKey(snapshot.getKey());
+                    return object;
+                })
+                .toList()
+                .subscribe(mReceiver::onReceive);
     }
 
     @Override
