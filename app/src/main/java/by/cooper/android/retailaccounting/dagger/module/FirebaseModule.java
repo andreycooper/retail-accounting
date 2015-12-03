@@ -14,6 +14,10 @@ import by.cooper.android.retailaccounting.util.UrlContract;
 import dagger.Module;
 import dagger.Provides;
 
+import static by.cooper.android.retailaccounting.dagger.DaggerContract.BASE_FB;
+import static by.cooper.android.retailaccounting.dagger.DaggerContract.IMAGES_FB;
+import static by.cooper.android.retailaccounting.util.UrlContract.IMAGES_URL;
+
 @Module
 public class FirebaseModule {
 
@@ -44,9 +48,18 @@ public class FirebaseModule {
 
     @NonNull
     @Provides
-    @Named("base")
+    @Named(BASE_FB)
     public Firebase provideBaseFirebase() {
         return new Firebase(UrlContract.BASE_URL);
+    }
+
+    @NonNull
+    @Provides
+    @Named(IMAGES_FB)
+    public Firebase provideImagesFirebase() {
+        Firebase ref = new Firebase(IMAGES_URL);
+        ref.keepSynced(true);
+        return ref;
     }
 
     @NonNull

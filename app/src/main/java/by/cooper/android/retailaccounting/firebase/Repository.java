@@ -14,14 +14,16 @@ import static by.cooper.android.retailaccounting.util.UrlContract.SLASH;
 
 public abstract class Repository<T extends Commodity> {
 
-    private static final String TAG = Repository.class.getSimpleName()
-            ;
+    private static final String TAG = Repository.class.getSimpleName();
+
+    private final Firebase mImagesRef;
     private final Firebase mRef;
     private final Class<T> mClazz;
 
-    public Repository(Firebase ref, Class<T> clazz) {
+    public Repository(Firebase ref, Class<T> clazz, Firebase imagesRef) {
         mRef = ref;
         mClazz = clazz;
+        mImagesRef = imagesRef;
     }
 
     public Firebase getFirebase() {
@@ -47,8 +49,7 @@ public abstract class Repository<T extends Commodity> {
     }
 
     public String putImage(@NonNull final String image) {
-        final Firebase ref = new Firebase(IMAGES_URL);
-        Firebase imageRef = ref.push();
+        Firebase imageRef = mImagesRef.push();
         imageRef.setValue(image, (firebaseError, firebase) -> {
             if (firebaseError != null) {
                 Log.d(TAG, "Data could not be saved. " + firebaseError.getMessage());

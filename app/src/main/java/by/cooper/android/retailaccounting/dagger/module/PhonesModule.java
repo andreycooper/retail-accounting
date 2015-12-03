@@ -12,13 +12,16 @@ import by.cooper.android.retailaccounting.model.Phone;
 import dagger.Module;
 import dagger.Provides;
 
+import static by.cooper.android.retailaccounting.dagger.DaggerContract.IMAGES_FB;
+import static by.cooper.android.retailaccounting.dagger.DaggerContract.PHONES_FB;
+
 @Module
 public class PhonesModule {
 
     @NonNull
     @Provides
     @AppScope
-    @Named("phones")
+    @Named(PHONES_FB)
     public Firebase providePhonesFirebase() {
         Firebase phonesRef = new Firebase(Phone.getUrlPath());
         phonesRef.keepSynced(true);
@@ -28,7 +31,8 @@ public class PhonesModule {
     @NonNull
     @Provides
     @AppScope
-    public PhonesRepository providePhonesRepository(@Named("phones") @NonNull Firebase phonesRef) {
-        return new PhonesRepository(phonesRef);
+    public PhonesRepository providePhonesRepository(@Named(PHONES_FB) @NonNull Firebase phonesRef,
+                                                    @Named(IMAGES_FB) @NonNull Firebase imagesRef) {
+        return new PhonesRepository(phonesRef, imagesRef);
     }
 }

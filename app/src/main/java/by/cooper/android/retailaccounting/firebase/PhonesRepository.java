@@ -17,6 +17,8 @@ import javax.inject.Named;
 import by.cooper.android.retailaccounting.model.Phone;
 import rx.Observable;
 
+import static by.cooper.android.retailaccounting.dagger.DaggerContract.IMAGES_FB;
+import static by.cooper.android.retailaccounting.dagger.DaggerContract.PHONES_FB;
 import static by.cooper.android.retailaccounting.util.CommodityContract.BRAND;
 import static by.cooper.android.retailaccounting.util.PhoneContract.IMEI;
 
@@ -26,8 +28,9 @@ public final class PhonesRepository extends Repository<Phone> {
     private static final String TAG = PhonesRepository.class.getSimpleName();
 
     @Inject
-    public PhonesRepository(@Named("phones") @NonNull Firebase ref) {
-        super(ref, Phone.class);
+    public PhonesRepository(@Named(PHONES_FB) @NonNull Firebase phonesRef,
+                            @Named(IMAGES_FB) @NonNull Firebase imagesRef) {
+        super(phonesRef, Phone.class, imagesRef);
     }
 
     @Override
@@ -53,7 +56,8 @@ public final class PhonesRepository extends Repository<Phone> {
         });
     }
 
-    public Observable<List<String>> getModelSuggestionsByBrand(@NonNull final String brand, @NonNull final String model) {
+    public Observable<List<String>> getModelSuggestionsByBrand(@NonNull final String brand,
+                                                               @NonNull final String model) {
         final Query refQuery = getFirebase().orderByChild(BRAND).equalTo(brand);
         return Observable.create(subscriber -> {
             final ResultReceiver<Phone> resultReceiver = new ResultReceiver<Phone>() {
