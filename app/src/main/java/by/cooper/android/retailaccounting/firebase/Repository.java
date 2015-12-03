@@ -1,15 +1,21 @@
 package by.cooper.android.retailaccounting.firebase;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.firebase.client.Firebase;
 import com.firebase.client.Query;
 
 import by.cooper.android.retailaccounting.model.Commodity;
 
+import static by.cooper.android.retailaccounting.util.UrlContract.IMAGES_URL;
+import static by.cooper.android.retailaccounting.util.UrlContract.SLASH;
+
 
 public abstract class Repository<T extends Commodity> {
 
+    private static final String TAG = Repository.class.getSimpleName()
+            ;
     private final Firebase mRef;
     private final Class<T> mClazz;
 
@@ -38,6 +44,19 @@ public abstract class Repository<T extends Commodity> {
         } else {
             requestItems(resultReceiver, field, fieldQuery);
         }
+    }
+
+    public String putImage(@NonNull final String image) {
+        final Firebase ref = new Firebase(IMAGES_URL);
+        Firebase imageRef = ref.push();
+        imageRef.setValue(image, (firebaseError, firebase) -> {
+            if (firebaseError != null) {
+                Log.d(TAG, "Data could not be saved. " + firebaseError.getMessage());
+            } else {
+                Log.d(TAG, "Data saved successfully.");
+            }
+        });
+        return IMAGES_URL + SLASH + imageRef.getKey();
     }
 
     public abstract void putItem(@NonNull T object);

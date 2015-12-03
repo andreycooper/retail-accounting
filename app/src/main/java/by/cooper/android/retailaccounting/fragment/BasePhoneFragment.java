@@ -1,10 +1,13 @@
 package by.cooper.android.retailaccounting.fragment;
 
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -29,15 +32,16 @@ import java.util.List;
 
 import by.cooper.android.retailaccounting.R;
 import by.cooper.android.retailaccounting.databinding.FragmentPhoneBinding;
-import by.cooper.android.retailaccounting.model.Phone;
 import by.cooper.android.retailaccounting.firebase.SuggestionReceiver;
+import by.cooper.android.retailaccounting.model.Phone;
 import by.cooper.android.retailaccounting.viewmodel.PhoneViewModel;
 
 
 public abstract class BasePhoneFragment extends Fragment implements SuggestionReceiver {
-    public static final String PHONE = "by.cooper.android.retailaccounting.PHONE";
-    public static final String PHONE_VIEW_MODEL = "by.cooper.android.retailaccounting.PHONE_VIEW_MODEL";
+    protected static final String PHONE = "by.cooper.android.retailaccounting.PHONE";
+    protected static final String PHONE_VIEW_MODEL = "by.cooper.android.retailaccounting.PHONE_VIEW_MODEL";
     private static final String LOG_TAG = BasePhoneFragment.class.getSimpleName();
+    private static final int REQUEST_IMAGE_CAPTURE = 972;
 
     @Nullable
     protected Phone mPhone;
@@ -115,6 +119,14 @@ public abstract class BasePhoneFragment extends Fragment implements SuggestionRe
                 mViewModel.onBarcodeScan(content);
             }
         }
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap thumbnail = (Bitmap) extras.get("data");
+            if (mViewModel != null && thumbnail != null) {
+                mViewModel.onThumbnailReceived(thumbnail);
+            }
+        }
+
     }
 
     @Override
@@ -133,6 +145,13 @@ public abstract class BasePhoneFragment extends Fragment implements SuggestionRe
     public void clearSuggestions() {
         mBrandSuggestionAdapter.clear();
         mModelSuggestionAdapter.clear();
+    }
+
+    public void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
     }
 
     protected abstract PhoneViewModel getViewModel();

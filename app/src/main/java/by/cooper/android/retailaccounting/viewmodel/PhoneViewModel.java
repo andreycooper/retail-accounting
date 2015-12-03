@@ -5,6 +5,7 @@ import android.content.Context;
 import android.databinding.BaseObservable;
 import android.databinding.Bindable;
 import android.databinding.ObservableField;
+import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.text.Editable;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Toast;
 
+import com.firebase.client.utilities.Base64;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
@@ -22,6 +24,7 @@ import org.joda.time.DateTimeZone;
 import org.parceler.Parcel;
 import org.parceler.Transient;
 
+import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
 
 import javax.inject.Inject;
@@ -36,6 +39,9 @@ import by.cooper.android.retailaccounting.model.Phone;
 import by.cooper.android.retailaccounting.util.DateTimeUtils;
 import by.cooper.android.retailaccounting.util.Objects;
 import dagger.Lazy;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 
 @Parcel(Parcel.Serialization.FIELD)
@@ -44,6 +50,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     private static final String TAG = "PhoneViewModel";
     private static final String RECEIVE_DATE_PICKER_TAG = "ReceiveDateTimePicker";
     private static final String SOLD_DATE_PICKER_TAG = "SoldDateTimePicker";
+    public static final int COMPRESS_QUALITY = 90;
 
     Phone mPhone;
     String mDatePickerTag;
@@ -151,10 +158,11 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
         if (!Objects.equals(mPhone.getModel(), model)) {
             modelError.set(null);
             mPhone.setModel(model);
-            if (!TextUtils.isEmpty(mPhone.getBrand())) {
+            final String brand = mPhone.getBrand().trim();
+            if (!TextUtils.isEmpty(brand)) {
                 final SuggestionReceiver suggestionReceiver = mFragmentWeakReference.get();
                 mLazyRepository.get()
-                        .getModelSuggestionsByBrand(mPhone.getBrand(), model)
+                        .getModelSuggestionsByBrand(brand, model)
                         .subscribe(suggestionReceiver::onModelsReceived, throwable -> {
                             suggestionReceiver.clearSuggestions();
                         });
@@ -167,7 +175,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     }
 
     public void onImeiChanged(Editable str) {
-        String imei = str.toString();
+        final String imei = str.toString().trim();
         if (!Objects.equals(mPhone.getImei(), imei)) {
             if (isCorrectImei(imei)) {
                 setImei(imei);
@@ -204,6 +212,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
         // TODO: implement taking photo
         Log.d(TAG, "onPhotoFabClick()");
         Log.d(TAG, mPhone.toString());
+        mFragmentWeakReference.get().dispatchTakePictureIntent();
     }
 
     public void onResume(@NonNull final BasePhoneFragment fragment) {
@@ -232,6 +241,28 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
                 }
             }
         }
+    }
+
+    public void onThumbnailReceived(@NonNull final Bitmap thumbnail) {
+        Observable.just(thumbnail)
+                .map(bitmap -> {
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, COMPRESS_QUALITY, stream);
+                    bitmap.recycle();
+                    return stream.toByteArray();
+                })
+                .map(Base64::encodeBytes)
+                .map(image -> mLazyRepository.get().putImage(image))
+                .doOnNext(imageUrl -> Log.d(TAG, imageUrl))
+                .filter(imageUrl -> !TextUtils.isEmpty(imageUrl))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(mPhone::setImageUrl,
+                        throwable -> {
+                            Log.e(TAG, throwable.getMessage());
+                            throwable.printStackTrace();
+                            thumbnail.recycle();
+                        }, thumbnail::recycle);
     }
 
     @Override

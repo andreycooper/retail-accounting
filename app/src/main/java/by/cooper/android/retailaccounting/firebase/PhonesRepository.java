@@ -15,9 +15,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import by.cooper.android.retailaccounting.model.Phone;
-import by.cooper.android.retailaccounting.util.CommodityContract;
-import by.cooper.android.retailaccounting.util.PhoneContract;
 import rx.Observable;
+
+import static by.cooper.android.retailaccounting.util.CommodityContract.BRAND;
+import static by.cooper.android.retailaccounting.util.PhoneContract.IMEI;
 
 
 public final class PhonesRepository extends Repository<Phone> {
@@ -32,7 +33,7 @@ public final class PhonesRepository extends Repository<Phone> {
     @Override
     public void putItem(@NonNull Phone phone) {
         final Firebase ref = getFirebase();
-        Query refQuery = ref.orderByChild(PhoneContract.IMEI).equalTo(phone.getImei());
+        Query refQuery = ref.orderByChild(IMEI).equalTo(phone.getImei());
         refQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -53,7 +54,7 @@ public final class PhonesRepository extends Repository<Phone> {
     }
 
     public Observable<List<String>> getModelSuggestionsByBrand(@NonNull final String brand, @NonNull final String model) {
-        final Query refQuery = getFirebase().orderByChild(CommodityContract.BRAND).equalTo(brand);
+        final Query refQuery = getFirebase().orderByChild(BRAND).equalTo(brand);
         return Observable.create(subscriber -> {
             final ResultReceiver<Phone> resultReceiver = new ResultReceiver<Phone>() {
                 @Override
@@ -83,7 +84,7 @@ public final class PhonesRepository extends Repository<Phone> {
     }
 
     public Observable<List<String>> getBrandSuggestions(@NonNull final String brand) {
-        final Query refQuery = getFirebase().orderByChild(CommodityContract.BRAND).startAt(brand);
+        final Query refQuery = getFirebase().orderByChild(BRAND).startAt(brand);
         return Observable.create(subscriber -> {
             final ResultReceiver<Phone> resultReceiver = new ResultReceiver<Phone>() {
                 @Override
