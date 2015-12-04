@@ -45,4 +45,8 @@ public final class Events {
             return mAuthData;
         }
     }
+
+    public static final class PhonesUpdateEvent {
+
+    }
 }

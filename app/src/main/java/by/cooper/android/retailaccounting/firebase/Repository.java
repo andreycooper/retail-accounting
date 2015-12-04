@@ -52,13 +52,17 @@ public abstract class Repository<T extends Commodity> {
         Firebase imageRef = mImagesRef.push();
         imageRef.setValue(image, (firebaseError, firebase) -> {
             if (firebaseError != null) {
-                Log.d(TAG, "Data could not be saved. " + firebaseError.getMessage());
+                Log.d(TAG, "Image could not be saved. " + firebaseError.getMessage());
             } else {
-                Log.d(TAG, "Data saved successfully.");
+                Log.d(TAG, "Image saved successfully.");
             }
         });
         return IMAGES_URL + SLASH + imageRef.getKey();
     }
 
     public abstract void putItem(@NonNull T object);
+
+    public abstract void updateItem(@NonNull String key, @NonNull T object);
+
+    public abstract void deleteItem(@NonNull String key, @NonNull T object);
 }

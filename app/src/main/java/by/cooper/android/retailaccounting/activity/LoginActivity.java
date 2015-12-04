@@ -11,7 +11,7 @@ import javax.inject.Inject;
 
 import by.cooper.android.retailaccounting.App;
 import by.cooper.android.retailaccounting.R;
-import by.cooper.android.retailaccounting.util.Events;
+import by.cooper.android.retailaccounting.util.Events.FirebaseLoginEvent;
 import by.cooper.android.retailaccounting.viewmodel.LoginViewModel;
 import dagger.Lazy;
 import de.greenrobot.event.EventBus;
@@ -56,8 +56,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onStop();
     }
 
-    @SuppressWarnings("unused")
-    public void onEventMainThread(Events.FirebaseLoginEvent loginEvent) {
+    @SuppressWarnings("UnusedDeclaration")
+    public void onEventMainThread(FirebaseLoginEvent loginEvent) {
         EventBus.getDefault().removeStickyEvent(loginEvent);
         mLoginViewModel.onReceiveLoginEvent(this, loginEvent);
     }

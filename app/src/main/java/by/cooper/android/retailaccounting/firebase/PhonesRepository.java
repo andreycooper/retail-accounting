@@ -42,7 +42,13 @@ public final class PhonesRepository extends Repository<Phone> {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.getChildren().iterator().hasNext()) {
                     Firebase phoneRef = ref.push();
-                    phoneRef.setValue(phone);
+                    phoneRef.setValue(phone, (firebaseError, firebase) -> {
+                        if (firebaseError != null) {
+                            Log.d(TAG, "Phone could not be saved. " + firebaseError.getMessage());
+                        } else {
+                            Log.d(TAG, "Phone saved successfully.");
+                        }
+                    });
                     String phoneKey = phoneRef.getKey();
                     phone.setKey(phoneKey);
                     // TODO: maybe save to local DB?
@@ -54,6 +60,23 @@ public final class PhonesRepository extends Repository<Phone> {
 
             }
         });
+    }
+
+    @Override
+    public void updateItem(@NonNull String key, @NonNull Phone phone) {
+        final Firebase updateRef = getFirebase().child(key);
+        updateRef.setValue(phone, (firebaseError, firebase) -> {
+            if (firebaseError != null) {
+                Log.d(TAG, "Phone could not be updated. " + firebaseError.getMessage());
+            } else {
+                Log.d(TAG, "Phone updated successfully.");
+            }
+        });
+    }
+
+    @Override
+    public void deleteItem(@NonNull String key, @NonNull Phone phone) {
+
     }
 
     public Observable<List<String>> getModelSuggestionsByBrand(@NonNull final String brand,
@@ -97,6 +120,7 @@ public final class PhonesRepository extends Repository<Phone> {
                         return;
                     }
                     Observable.from(phoneList)
+                            .distinct(Phone::getBrand)
                             .map(Phone::getBrand)
                             .toList()
                             .subscribe(brands -> {

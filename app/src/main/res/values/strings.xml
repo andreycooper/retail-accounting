@@ -27,6 +27,9 @@
     <string name="phone_error_not_correct_imei">Imei is not correct</string>
     <string name="phone_error_error_scan_barcode">Scanned barcode: %1$s is not correct</string>
     <string name="phone_date_pattern">EEE, dd MMM  yyyy</string>
+    <string name="phone_error_empty_brand">Brand can\'t be empty!</string>
+    <string name="phone_error_empty_model">Model can\'t be empty!</string>
+    <string name="phone_error_empty_imei">Imei can\'t be empty!</string>
 
     <!-- Strings related to login -->
     <string name="title_activity_login">Sign in</string>

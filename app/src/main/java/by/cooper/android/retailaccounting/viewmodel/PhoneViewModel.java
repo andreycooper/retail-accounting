@@ -37,11 +37,17 @@ import by.cooper.android.retailaccounting.firebase.SuggestionReceiver;
 import by.cooper.android.retailaccounting.fragment.BasePhoneFragment;
 import by.cooper.android.retailaccounting.model.Phone;
 import by.cooper.android.retailaccounting.util.DateTimeUtils;
+import by.cooper.android.retailaccounting.util.ModelValidator;
 import by.cooper.android.retailaccounting.util.Objects;
+import by.cooper.android.retailaccounting.util.PhoneModelValidator;
 import dagger.Lazy;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+
+import static by.cooper.android.retailaccounting.util.PhoneModelValidator.BRAND_ERROR;
+import static by.cooper.android.retailaccounting.util.PhoneModelValidator.IMEI_ERROR;
+import static by.cooper.android.retailaccounting.util.PhoneModelValidator.MODEL_ERROR;
 
 
 @Parcel(Parcel.Serialization.FIELD)
@@ -177,9 +183,8 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     public void onImeiChanged(Editable str) {
         final String imei = str.toString().trim();
         if (!Objects.equals(mPhone.getImei(), imei)) {
-            if (isCorrectImei(imei)) {
-                setImei(imei);
-            }
+            imeiError.set(null);
+            mPhone.setImei(imei);
         }
     }
 
@@ -209,9 +214,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     }
 
     public void onPhotoFabClick(View view) {
-        // TODO: implement taking photo
-        Log.d(TAG, "onPhotoFabClick()");
-        Log.d(TAG, mPhone.toString());
+        // TODO: check Phone's image url and show dialog if it already exists
         mFragmentWeakReference.get().dispatchTakePictureIntent();
     }
 
@@ -229,7 +232,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
 
     public void onBarcodeScan(@NonNull String barcode) {
         if (!Objects.equals(mPhone.getImei(), barcode)) {
-            if (isCorrectImei(barcode)) {
+            if (PhoneModelValidator.isCorrectImei(barcode)) {
                 setImei(barcode);
             } else {
                 String error = mLazyContext.get().getString(R.string.phone_error_error_scan_barcode, barcode);
@@ -265,6 +268,29 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
                         }, thumbnail::recycle);
     }
 
+    public void onActionDoneClick() {
+        // TODO: maybe show confirm dialogs?
+        ModelValidator<Phone> validator = new PhoneModelValidator();
+        if (validator.isModelValid(mLazyContext.get(), mPhone)) {
+            if (TextUtils.isEmpty(mPhone.getKey())) {
+                mLazyRepository.get().putItem(mPhone);
+                mFragmentWeakReference.get().getActivity().onBackPressed();
+            } else {
+                mLazyRepository.get().updateItem(mPhone.getKey(), mPhone);
+                mFragmentWeakReference.get().getActivity().onBackPressed();
+            }
+        } else {
+            brandError.set(validator.getErrorsMap().get(BRAND_ERROR));
+            modelError.set(validator.getErrorsMap().get(MODEL_ERROR));
+            imeiError.set(validator.getErrorsMap().get(IMEI_ERROR));
+        }
+    }
+
+    public void onActionDeleteClick() {
+        // TODO: show dialog to confirm delete phone
+
+    }
+
     @Override
     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
         mDatePickerTag = null;
@@ -298,10 +324,6 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
         if (mLazyContext == null || mLazyRepository == null) {
             inject(fragment.getActivity());
         }
-    }
-
-    private boolean isCorrectImei(@NonNull final String imei) {
-        return imei.matches("\\d{15}");
     }
 
     private DatePickerDialog getReceivePickerDialog() {

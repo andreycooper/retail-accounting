@@ -13,6 +13,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -40,7 +41,7 @@ import by.cooper.android.retailaccounting.viewmodel.PhoneViewModel;
 public abstract class BasePhoneFragment extends Fragment implements SuggestionReceiver {
     protected static final String PHONE = "by.cooper.android.retailaccounting.PHONE";
     protected static final String PHONE_VIEW_MODEL = "by.cooper.android.retailaccounting.PHONE_VIEW_MODEL";
-    private static final String LOG_TAG = BasePhoneFragment.class.getSimpleName();
+    protected static final String LOG_TAG = "PhoneFragment";
     private static final int REQUEST_IMAGE_CAPTURE = 972;
 
     @Nullable
@@ -88,6 +89,13 @@ public abstract class BasePhoneFragment extends Fragment implements SuggestionRe
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.action_done:
+                // TODO: implement DONE button
+                Log.d(LOG_TAG, "DONE clicked!");
+                if (mViewModel != null) {
+                    mViewModel.onActionDoneClick();
+                }
+                return true;
             case android.R.id.home:
                 getActivity().onBackPressed();
                 return true;

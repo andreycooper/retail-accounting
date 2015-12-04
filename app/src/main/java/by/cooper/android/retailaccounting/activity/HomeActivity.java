@@ -25,7 +25,9 @@ import by.cooper.android.retailaccounting.firebase.PhonesRepository;
 import by.cooper.android.retailaccounting.firebase.ResultReceiver;
 import by.cooper.android.retailaccounting.firebase.auth.AuthManager;
 import by.cooper.android.retailaccounting.model.Phone;
+import by.cooper.android.retailaccounting.util.Events.PhonesUpdateEvent;
 import by.cooper.android.retailaccounting.view.PhonesRecyclerAdapter;
+import de.greenrobot.event.EventBus;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -41,6 +43,7 @@ public class HomeActivity extends AppCompatActivity {
     FloatingActionButton fab;
     @Bind(R.id.phones_recycler_view)
     RecyclerView recyclerView;
+    private PhonesRecyclerAdapter mPhonesRecyclerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,30 +57,51 @@ public class HomeActivity extends AppCompatActivity {
 
         fab.setOnClickListener(view -> startActivity(new Intent(HomeActivity.this, PhoneActivity.class)));
 
-        PhonesRecyclerAdapter adapter = new PhonesRecyclerAdapter(new ArrayList<>());
+        mPhonesRecyclerAdapter = new PhonesRecyclerAdapter(new ArrayList<>());
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
+        recyclerView.setAdapter(mPhonesRecyclerAdapter);
 
         if (mAuthManager.isLoggedIn()) {
-            Log.d("HomeActivity", "Login is Ok, request items");
-            mRepo.requestItems(new ResultReceiver<Phone>() {
-                @Override
-                public void onReceive(List<Phone> itemList) {
-                    adapter.setPhones(itemList);
-                }
-
-                @Override
-                public void onError(FirebaseError error) {
-                    Snackbar.make(HomeActivity.this.findViewById(R.id.home_layout),
-                            HomeActivity.this.getString(R.string.error_loading, error.getDetails()),
-                            Snackbar.LENGTH_SHORT).show();
-                }
-            });
+            loadItems();
         } else {
             Log.d("HomeActivity", "Login is failed!");
             // TODO: notify user and start login screen
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().registerSticky(this);
+    }
+
+    @Override
+    protected void onStop() {
+        EventBus.getDefault().unregister(this);
+        super.onStop();
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public void onEventMainThread(PhonesUpdateEvent event) {
+        EventBus.getDefault().removeStickyEvent(event);
+        loadItems();
+    }
+
+    private void loadItems() {
+        mRepo.requestItems(new ResultReceiver<Phone>() {
+            @Override
+            public void onReceive(List<Phone> itemList) {
+                mPhonesRecyclerAdapter.setPhones(itemList);
+            }
+
+            @Override
+            public void onError(FirebaseError error) {
+                Snackbar.make(HomeActivity.this.findViewById(R.id.home_layout),
+                        HomeActivity.this.getString(R.string.error_loading, error.getDetails()),
+                        Snackbar.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }

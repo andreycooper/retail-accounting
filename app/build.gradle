@@ -8,6 +8,7 @@ apply plugin: 'com.getkeepsafe.dexcount'
 repositories {
     jcenter()
     mavenCentral()
+    maven { url "https://jitpack.io" }
 }
 
 android {
@@ -95,6 +96,9 @@ dependencies {
     // UI libs
     compile 'me.zhanghai.android.materialprogressbar:library:1.1.4'
     compile 'com.wdullaer:materialdatetimepicker:2.0.2'
+    compile('com.github.afollestad.material-dialogs:core:0.8.5.2@aar') {
+        transitive = true
+    }
 
     // Other libs
     compile 'com.firebase:firebase-client-android:2.4.1'
