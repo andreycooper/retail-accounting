@@ -7,6 +7,9 @@
     <!-- Rationale for asking for Contacts -->
     <string name="permission_rationale">Contacts permissions are needed for providing email completions.</string>
 
+    <string name="dialog_positive">OK</string>
+    <string name="dialog_negative">Cancel</string>
+
     <!-- Strings related to home -->
     <string name="title_activity_home">Phones</string>
     <string name="phone_item_label_imei">IMEI:</string>
@@ -30,6 +33,10 @@
     <string name="phone_error_empty_brand">Brand can\'t be empty!</string>
     <string name="phone_error_empty_model">Model can\'t be empty!</string>
     <string name="phone_error_empty_imei">Imei can\'t be empty!</string>
+    <string name="phone_error_already_exists">Phone with imei: %1$s is already in Firebase!</string>
+    <string name="phone_error_firebase_exception">Can\'t save phone. Reason: %1$s</string>
+    <string name="dialog_title_photo">Replace photo</string>
+    <string name="dialog_content_photo">Phone already has photo. Do you want to replace it?</string>
 
     <!-- Strings related to login -->
     <string name="title_activity_login">Sign in</string>

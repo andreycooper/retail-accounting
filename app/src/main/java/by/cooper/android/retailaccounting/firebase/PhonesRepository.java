@@ -34,49 +34,65 @@ public final class PhonesRepository extends Repository<Phone> {
     }
 
     @Override
-    public void putItem(@NonNull Phone phone) {
+    public Observable<Boolean> saveItem(@NonNull Phone phone) {
         final Firebase ref = getFirebase();
-        Query refQuery = ref.orderByChild(IMEI).equalTo(phone.getImei());
-        refQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.getChildren().iterator().hasNext()) {
-                    Firebase phoneRef = ref.push();
-                    phoneRef.setValue(phone, (firebaseError, firebase) -> {
-                        if (firebaseError != null) {
-                            Log.d(TAG, "Phone could not be saved. " + firebaseError.getMessage());
-                        } else {
-                            Log.d(TAG, "Phone saved successfully.");
-                        }
-                    });
-                    String phoneKey = phoneRef.getKey();
-                    phone.setKey(phoneKey);
-                    // TODO: maybe save to local DB?
+        final Query refQuery = ref.orderByChild(IMEI).equalTo(phone.getImei());
+        return Observable.create(subscriber -> {
+            if (subscriber.isUnsubscribed()) return;
+            final Firebase.CompletionListener completionListener = (error, firebase) -> {
+                if (error != null) {
+                    subscriber.onError(new FirebaseException(error));
+                } else {
+                    Log.d(TAG, "Phone key: " + firebase.getKey());
+                    subscriber.onNext(true);
+                    subscriber.onCompleted();
                 }
-            }
+            };
+            refQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (!dataSnapshot.getChildren().iterator().hasNext()) {
+                        Firebase phoneRef = ref.push();
+                        phoneRef.setValue(phone, completionListener);
+                        String phoneKey = phoneRef.getKey();
+                        phone.setKey(phoneKey);
+                        Log.d(TAG, "Phone: " + phone);
+                        // TODO: maybe save to local DB?
+                    } else {
+                        subscriber.onNext(false);
+                        subscriber.onCompleted();
+                    }
+                }
 
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
+                @Override
+                public void onCancelled(FirebaseError error) {
+                    subscriber.onError(new FirebaseException(error));
+                }
+            });
         });
     }
 
     @Override
-    public void updateItem(@NonNull String key, @NonNull Phone phone) {
+    public Observable<Boolean> updateItem(@NonNull String key, @NonNull Phone phone) {
         final Firebase updateRef = getFirebase().child(key);
-        updateRef.setValue(phone, (firebaseError, firebase) -> {
-            if (firebaseError != null) {
-                Log.d(TAG, "Phone could not be updated. " + firebaseError.getMessage());
-            } else {
-                Log.d(TAG, "Phone updated successfully.");
-            }
+        return Observable.create(subscriber -> {
+            final Firebase.CompletionListener completionListener = (error, firebase) -> {
+                if (subscriber.isUnsubscribed()) return;
+                if (error != null) {
+                    subscriber.onError(new FirebaseException(error));
+                } else {
+                    subscriber.onNext(true);
+                    subscriber.onCompleted();
+                }
+            };
+            updateRef.setValue(phone, completionListener);
         });
     }
 
     @Override
-    public void deleteItem(@NonNull String key, @NonNull Phone phone) {
-
+    public Observable<Boolean> deleteItem(@NonNull String key, @NonNull Phone phone) {
+        // TODO: implement deleting phone
+        return null;
     }
 
     public Observable<List<String>> getModelSuggestionsByBrand(@NonNull final String brand,
@@ -86,14 +102,11 @@ public final class PhonesRepository extends Repository<Phone> {
             final ResultReceiver<Phone> resultReceiver = new ResultReceiver<Phone>() {
                 @Override
                 public void onReceive(List<Phone> phoneList) {
-                    if (subscriber.isUnsubscribed()) {
-                        return;
-                    }
+                    if (subscriber.isUnsubscribed()) return;
                     Observable.from(phoneList)
                             .filter(phone -> phone.getModel().toLowerCase().startsWith(model.toLowerCase()))
                             .distinct(Phone::getModel)
                             .map(Phone::getModel)
-                            .doOnNext(s -> Log.i(TAG, s))
                             .toList()
                             .subscribe(models -> {
                                 subscriber.onNext(models);
@@ -116,9 +129,7 @@ public final class PhonesRepository extends Repository<Phone> {
             final ResultReceiver<Phone> resultReceiver = new ResultReceiver<Phone>() {
                 @Override
                 public void onReceive(List<Phone> phoneList) {
-                    if (subscriber.isUnsubscribed()) {
-                        return;
-                    }
+                    if (subscriber.isUnsubscribed()) return;
                     Observable.from(phoneList)
                             .distinct(Phone::getBrand)
                             .map(Phone::getBrand)

@@ -13,7 +13,6 @@ import android.util.Log;
 import com.firebase.client.FirebaseError;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -21,10 +20,9 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import by.cooper.android.retailaccounting.App;
 import by.cooper.android.retailaccounting.R;
+import by.cooper.android.retailaccounting.firebase.FirebaseException;
 import by.cooper.android.retailaccounting.firebase.PhonesRepository;
-import by.cooper.android.retailaccounting.firebase.ResultReceiver;
 import by.cooper.android.retailaccounting.firebase.auth.AuthManager;
-import by.cooper.android.retailaccounting.model.Phone;
 import by.cooper.android.retailaccounting.util.Events.PhonesUpdateEvent;
 import by.cooper.android.retailaccounting.view.PhonesRecyclerAdapter;
 import de.greenrobot.event.EventBus;
@@ -73,12 +71,16 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        EventBus.getDefault().registerSticky(this);
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().registerSticky(this);
+        }
     }
 
     @Override
     protected void onStop() {
-        EventBus.getDefault().unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
         super.onStop();
     }
 
@@ -89,14 +91,9 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void loadItems() {
-        mRepo.requestItems(new ResultReceiver<Phone>() {
-            @Override
-            public void onReceive(List<Phone> itemList) {
-                mPhonesRecyclerAdapter.setPhones(itemList);
-            }
-
-            @Override
-            public void onError(FirebaseError error) {
+        mRepo.requestItems().subscribe(mPhonesRecyclerAdapter::setPhones, throwable -> {
+            if (throwable instanceof FirebaseException) {
+                FirebaseError error = ((FirebaseException) throwable).getFirebaseError();
                 Snackbar.make(HomeActivity.this.findViewById(R.id.home_layout),
                         HomeActivity.this.getString(R.string.error_loading, error.getDetails()),
                         Snackbar.LENGTH_SHORT).show();

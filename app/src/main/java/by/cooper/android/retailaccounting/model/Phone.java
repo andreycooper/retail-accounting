@@ -12,163 +12,162 @@ import by.cooper.android.retailaccounting.util.PhoneContract;
 import by.cooper.android.retailaccounting.util.UrlContract;
 
 
-@Parcel
+@Parcel(Parcel.Serialization.BEAN)
 public class Phone implements Commodity {
 
     public static final int DEFAULT_DATE = 0;
+    public static final String EMPTY = "";
 
-    // default package fields for @Parcel
     @JsonIgnore
-    String mKey;
+    private String key;
 
     @JsonProperty(CommodityContract.BRAND)
-    String mBrand;
+    private String brand;
     @JsonProperty(CommodityContract.MODEL)
-    String mModel;
+    private String model;
     @JsonProperty(CommodityContract.COUNT)
-    int mCount;
+    private int count;
     @JsonProperty(CommodityContract.PRICE)
-    int mPrice;
+    private int price;
     @JsonProperty(CommodityContract.RECEIVE_DATE)
-    long mReceiveDate;
+    private long receiveDate;
     @JsonProperty(CommodityContract.SOLD_DATE)
-    long mSoldDate;
-
+    private long soldDate;
     @JsonProperty(PhoneContract.IMEI)
-    String mImei;
+    private String imei;
     @JsonProperty(PhoneContract.SERIAL_NUMBER)
-    String mSerialNumber;
+    private String serialNumber;
     @JsonProperty(CommodityContract.COMMODITY_IMAGE_URL)
-    String mImageUrl;
+    private String imageUrl;
 
     public static String getUrlPath() {
         return UrlContract.BASE_URL + PhoneContract.PHONE_PATH;
     }
 
     public Phone() {
-    }
-
-    public Phone(@NonNull String brand, @NonNull String model, long receiveDate, @NonNull String imei) {
-        mKey = "";
-        mBrand = brand;
-        mModel = model;
-        mReceiveDate = receiveDate;
-        mImei = imei;
-        mPrice = 0;
-        mCount = 1;
-        mSoldDate = DEFAULT_DATE;
+        // This code style and empty initialization is for Jackson serializer :(
+        key = EMPTY;
+        brand = EMPTY;
+        model = EMPTY;
+        serialNumber = EMPTY;
+        imei = EMPTY;
+        count = 1;
+        price = 0;
+        receiveDate = DEFAULT_DATE;
+        soldDate = DEFAULT_DATE;
+        imageUrl = EMPTY;
     }
 
     @Override
     public String getKey() {
-        return mKey;
+        return key;
     }
 
     @Override
     public void setKey(@NonNull String key) {
-        mKey = key;
+        this.key = key;
     }
 
     @Override
     public String getBrand() {
-        return mBrand;
+        return brand;
     }
 
     @Override
     public void setBrand(@NonNull String brand) {
-        mBrand = brand;
+        this.brand = brand;
     }
 
     @Override
     @NonNull
     public String getModel() {
-        return mModel;
+        return model;
     }
 
     @Override
     public void setModel(@NonNull String model) {
-        mModel = model;
+        this.model = model;
     }
 
     @Override
     public int getCount() {
-        return mCount;
+        return count;
     }
 
     @Override
     public void setCount(int count) {
-        mCount = count;
+        this.count = count;
     }
 
     @Override
     public int getPrice() {
-        return mPrice;
+        return price;
     }
 
     @Override
     public void setPrice(int price) {
-        mPrice = price;
+        this.price = price;
     }
 
     @Override
     public long getReceiveDate() {
-        return mReceiveDate;
+        return receiveDate;
     }
 
     @Override
     public void setReceiveDate(long receiveDate) {
-        mReceiveDate = receiveDate;
+        this.receiveDate = receiveDate;
     }
 
     @Override
     public long getSoldDate() {
-        return mSoldDate;
+        return soldDate;
     }
 
     @Override
     public void setSoldDate(long soldDate) {
-        mSoldDate = soldDate;
+        this.soldDate = soldDate;
     }
 
     @Override
     public String getImageUrl() {
-        return mImageUrl;
+        return imageUrl;
     }
 
     @Override
     public void setImageUrl(String url) {
-        mImageUrl = url;
+        imageUrl = url;
     }
 
     @NonNull
     public String getImei() {
-        return mImei;
+        return imei;
     }
 
     public void setImei(@NonNull String imei) {
-        mImei = imei;
+        this.imei = imei;
     }
 
     public String getSerialNumber() {
-        return mSerialNumber;
+        return serialNumber;
     }
 
     public void setSerialNumber(String serialNumber) {
-        mSerialNumber = serialNumber;
+        this.serialNumber = serialNumber;
     }
 
     @Override
     public String toString() {
         return "Phone{" +
-                "mBrand='" + mBrand + '\'' +
-                ", mModel='" + mModel + '\'' +
-                ", mCount=" + mCount +
-                ", mPrice=" + mPrice +
-                ", mReceiveDate=" + mReceiveDate +
-                ", mSoldDate=" + mSoldDate +
-                ", mImei='" + mImei + '\'' +
-                ", mSerialNumber='" + mSerialNumber + '\'' +
-                ", mImageUrl='" + mImageUrl + '\'' +
+                "brand='" + brand + '\'' +
+                ", model='" + model + '\'' +
+                ", count=" + count +
+                ", price=" + price +
+                ", receiveDate=" + receiveDate +
+                ", soldDate=" + soldDate +
+                ", imei='" + imei + '\'' +
+                ", serialNumber='" + serialNumber + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
                 '}';
     }
 }

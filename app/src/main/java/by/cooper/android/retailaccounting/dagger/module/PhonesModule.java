@@ -1,12 +1,11 @@
 package by.cooper.android.retailaccounting.dagger.module;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
-import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 
 import javax.inject.Named;
 
@@ -31,28 +30,9 @@ public class PhonesModule {
     public Firebase providePhonesFirebase() {
         Firebase phonesRef = new Firebase(Phone.getUrlPath());
         phonesRef.keepSynced(true);
-        phonesRef.addChildEventListener(new ChildEventListener() {
+        phonesRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Log.d("PhonesModule", "onChildAdded(): " + s);
-                EventBus.getDefault().postSticky(new PhonesUpdateEvent());
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Log.d("PhonesModule", "onChildChanged(): " + s);
-                EventBus.getDefault().postSticky(new PhonesUpdateEvent());
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Log.d("PhonesModule", "onChildRemoved()");
-                EventBus.getDefault().postSticky(new PhonesUpdateEvent());
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                Log.d("PhonesModule", "onChildMoved(): " + s);
+            public void onDataChange(DataSnapshot dataSnapshot) {
                 EventBus.getDefault().postSticky(new PhonesUpdateEvent());
             }
 

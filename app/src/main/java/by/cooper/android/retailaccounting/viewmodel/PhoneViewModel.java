@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.firebase.client.utilities.Base64;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
@@ -32,6 +33,7 @@ import javax.inject.Inject;
 import by.cooper.android.retailaccounting.App;
 import by.cooper.android.retailaccounting.R;
 import by.cooper.android.retailaccounting.activity.ScannerActivity;
+import by.cooper.android.retailaccounting.firebase.FirebaseException;
 import by.cooper.android.retailaccounting.firebase.PhonesRepository;
 import by.cooper.android.retailaccounting.firebase.SuggestionReceiver;
 import by.cooper.android.retailaccounting.fragment.BasePhoneFragment;
@@ -124,7 +126,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
 
     @Bindable
     public String getReceiveDate() {
-        if (mPhone.getReceiveDate() <= 0) {
+        if (mPhone.getReceiveDate() <= Phone.DEFAULT_DATE) {
             mPhone.setReceiveDate(new DateTime(DateTimeZone.UTC).getMillis());
         }
         return getConvertedDate(mPhone.getReceiveDate());
@@ -214,8 +216,18 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     }
 
     public void onPhotoFabClick(View view) {
-        // TODO: check Phone's image url and show dialog if it already exists
-        mFragmentWeakReference.get().dispatchTakePictureIntent();
+        if (!TextUtils.isEmpty(mPhone.getImageUrl())) {
+            MaterialDialog dialog = new MaterialDialog.Builder(mFragmentWeakReference.get().getActivity())
+                    .title(R.string.dialog_title_photo)
+                    .content(R.string.dialog_content_photo)
+                    .positiveText(R.string.dialog_positive)
+                    .negativeText(R.string.dialog_negative)
+                    .onPositive((materialDialog, dialogAction) -> mFragmentWeakReference.get().dispatchTakePictureIntent())
+                    .onNegative((materialDialog, dialogAction) -> materialDialog.dismiss()).build();
+            dialog.show();
+        } else {
+            mFragmentWeakReference.get().dispatchTakePictureIntent();
+        }
     }
 
     public void onResume(@NonNull final BasePhoneFragment fragment) {
@@ -236,17 +248,13 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
                 setImei(barcode);
             } else {
                 String error = mLazyContext.get().getString(R.string.phone_error_error_scan_barcode, barcode);
-                View rootView = mFragmentWeakReference.get().getView();
-                if (rootView != null) {
-                    Snackbar.make(rootView, error, Snackbar.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(mLazyContext.get(), error, Toast.LENGTH_SHORT).show();
-                }
+                showError(error);
             }
         }
     }
 
     public void onThumbnailReceived(@NonNull final Bitmap thumbnail) {
+        // TODO: Show progress while saving image!
         Observable.just(thumbnail)
                 .map(bitmap -> {
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -255,7 +263,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
                     return stream.toByteArray();
                 })
                 .map(Base64::encodeBytes)
-                .map(image -> mLazyRepository.get().putImage(image))
+                .flatMap(image -> mLazyRepository.get().saveImage(image))
                 .doOnNext(imageUrl -> Log.d(TAG, imageUrl))
                 .filter(imageUrl -> !TextUtils.isEmpty(imageUrl))
                 .subscribeOn(Schedulers.io())
@@ -273,11 +281,9 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
         ModelValidator<Phone> validator = new PhoneModelValidator();
         if (validator.isModelValid(mLazyContext.get(), mPhone)) {
             if (TextUtils.isEmpty(mPhone.getKey())) {
-                mLazyRepository.get().putItem(mPhone);
-                mFragmentWeakReference.get().getActivity().onBackPressed();
+                savePhone();
             } else {
-                mLazyRepository.get().updateItem(mPhone.getKey(), mPhone);
-                mFragmentWeakReference.get().getActivity().onBackPressed();
+                updatePhone();
             }
         } else {
             brandError.set(validator.getErrorsMap().get(BRAND_ERROR));
@@ -323,6 +329,48 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     private void lazyInject(BasePhoneFragment fragment) {
         if (mLazyContext == null || mLazyRepository == null) {
             inject(fragment.getActivity());
+        }
+    }
+
+    private void savePhone() {
+        mLazyRepository.get().saveItem(mPhone).subscribe(isSaved -> {
+            if (isSaved) {
+                mFragmentWeakReference.get().getActivity().onBackPressed();
+            } else {
+                String error = mLazyContext.get()
+                        .getString(R.string.phone_error_already_exists, mPhone.getImei());
+                showError(error);
+            }
+        }, this::showThrowableError);
+    }
+
+    private void updatePhone() {
+        mLazyRepository.get().updateItem(mPhone.getKey(), mPhone).subscribe(isSaved -> {
+            if (isSaved) {
+                mFragmentWeakReference.get().getActivity().onBackPressed();
+            }
+        }, this::showThrowableError);
+    }
+
+    @NonNull
+    private String getFirebaseErrorString(FirebaseException ex) {
+        return mLazyContext.get().getString(R.string.phone_error_firebase_exception,
+                ex.getFirebaseError().getDetails());
+    }
+
+    private void showThrowableError(Throwable throwable) {
+        if (throwable instanceof FirebaseException) {
+            String error = getFirebaseErrorString((FirebaseException) throwable);
+            showError(error);
+        }
+    }
+
+    private void showError(@NonNull String error) {
+        View rootView = mFragmentWeakReference.get().getView();
+        if (rootView != null) {
+            Snackbar.make(rootView, error, Snackbar.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(mLazyContext.get(), error, Toast.LENGTH_SHORT).show();
         }
     }
 

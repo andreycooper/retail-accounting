@@ -1,12 +1,15 @@
 package by.cooper.android.retailaccounting.firebase;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
 import com.firebase.client.Query;
 
+import java.util.List;
+
 import by.cooper.android.retailaccounting.model.Commodity;
+import rx.Observable;
 
 import static by.cooper.android.retailaccounting.util.UrlContract.IMAGES_URL;
 import static by.cooper.android.retailaccounting.util.UrlContract.SLASH;
@@ -30,15 +33,34 @@ public abstract class Repository<T extends Commodity> {
         return mRef;
     }
 
-    public void requestItems(@NonNull ResultReceiver<T> resultReceiver) {
-        mRef.addListenerForSingleValueEvent(new SingleRequest<>(resultReceiver, mClazz));
+    public Observable<List<T>> requestItems() {
+        return Observable.create(subscriber -> {
+            final ResultReceiver<T> resultReceiver = new ResultReceiver<T>() {
+                @Override
+                public void onReceive(List<T> itemList) {
+                    if (subscriber.isUnsubscribed()) return;
+
+                    subscriber.onNext(itemList);
+                    subscriber.onCompleted();
+                }
+
+                @Override
+                public void onError(FirebaseError error) {
+                    subscriber.onError(new FirebaseException(error));
+                }
+            };
+
+            mRef.addListenerForSingleValueEvent(new SingleRequest<>(resultReceiver, mClazz));
+        });
     }
 
+    // TODO: convert it to Observable
     public void requestItems(@NonNull ResultReceiver<T> resultReceiver, @NonNull String field, @NonNull String fieldQuery) {
         Query queryRef = mRef.orderByChild(field).startAt(fieldQuery);
         queryRef.addListenerForSingleValueEvent(new SingleRequest<>(resultReceiver, mClazz));
     }
 
+    // TODO: convert it to Observable
     public void requestItems(@NonNull ResultReceiver<T> resultReceiver, @NonNull String field, @NonNull String fieldQuery, int limit) {
         if (limit > 0) {
             Query queryRef = mRef.orderByChild(field).startAt(fieldQuery).limitToFirst(limit);
@@ -48,21 +70,25 @@ public abstract class Repository<T extends Commodity> {
         }
     }
 
-    public String putImage(@NonNull final String image) {
-        Firebase imageRef = mImagesRef.push();
-        imageRef.setValue(image, (firebaseError, firebase) -> {
-            if (firebaseError != null) {
-                Log.d(TAG, "Image could not be saved. " + firebaseError.getMessage());
-            } else {
-                Log.d(TAG, "Image saved successfully.");
-            }
+    public Observable<String> saveImage(@NonNull final String image) {
+        final Firebase imageRef = mImagesRef.push();
+        return Observable.create(subscriber -> {
+            final Firebase.CompletionListener completionListener = (error, firebase) -> {
+                if (subscriber.isUnsubscribed()) return;
+
+                if (error != null) {
+                    subscriber.onError(new FirebaseException(error));
+                } else {
+                    subscriber.onNext(IMAGES_URL + SLASH + firebase.getKey());
+                }
+            };
+            imageRef.setValue(image, completionListener);
         });
-        return IMAGES_URL + SLASH + imageRef.getKey();
     }
 
-    public abstract void putItem(@NonNull T object);
+    public abstract Observable<Boolean> saveItem(@NonNull T object);
 
-    public abstract void updateItem(@NonNull String key, @NonNull T object);
+    public abstract Observable<Boolean> updateItem(@NonNull String key, @NonNull T object);
 
-    public abstract void deleteItem(@NonNull String key, @NonNull T object);
+    public abstract Observable<Boolean> deleteItem(@NonNull String key, @NonNull T object);
 }
