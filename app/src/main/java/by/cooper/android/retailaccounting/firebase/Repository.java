@@ -88,7 +88,7 @@ public abstract class Repository<T extends Commodity> {
 
     public abstract Observable<Boolean> saveItem(@NonNull T object);
 
-    public abstract Observable<Boolean> updateItem(@NonNull String key, @NonNull T object);
+    public abstract Observable<Boolean> updateItem(@NonNull T object);
 
-    public abstract Observable<Boolean> deleteItem(@NonNull String key, @NonNull T object);
+    public abstract Observable<Boolean> deleteItem(@NonNull T object);
 }

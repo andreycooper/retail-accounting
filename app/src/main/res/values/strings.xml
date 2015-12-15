@@ -37,6 +37,8 @@
     <string name="phone_error_firebase_exception">Can\'t save phone. Reason: %1$s</string>
     <string name="dialog_title_photo">Replace photo</string>
     <string name="dialog_content_photo">Phone already has photo. Do you want to replace it?</string>
+    <string name="dialog_title_delete">Delete phone</string>
+    <string name="dialog_content_delete">Do you want to delete phone: %1$s - %2$s?</string>
 
     <!-- Strings related to login -->
     <string name="title_activity_login">Sign in</string>

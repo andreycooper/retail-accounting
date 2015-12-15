@@ -1,7 +1,6 @@
 package by.cooper.android.retailaccounting.fragment;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 
 import org.parceler.Parcels;
@@ -44,8 +43,6 @@ public class EditPhoneFragment extends BasePhoneFragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_delete:
-                // TODO: implement DELETE button
-                Log.d(LOG_TAG, "DELETE clicked!");
                 if (mViewModel != null) {
                     mViewModel.onActionDeleteClick();
                 }

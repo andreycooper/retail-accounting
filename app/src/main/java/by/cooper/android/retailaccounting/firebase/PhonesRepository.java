@@ -73,8 +73,8 @@ public final class PhonesRepository extends Repository<Phone> {
     }
 
     @Override
-    public Observable<Boolean> updateItem(@NonNull String key, @NonNull Phone phone) {
-        final Firebase updateRef = getFirebase().child(key);
+    public Observable<Boolean> updateItem(@NonNull Phone phone) {
+        final Firebase updateRef = getFirebase().child(phone.getKey());
         return Observable.create(subscriber -> {
             final Firebase.CompletionListener completionListener = (error, firebase) -> {
                 if (subscriber.isUnsubscribed()) return;
@@ -90,9 +90,20 @@ public final class PhonesRepository extends Repository<Phone> {
     }
 
     @Override
-    public Observable<Boolean> deleteItem(@NonNull String key, @NonNull Phone phone) {
-        // TODO: implement deleting phone
-        return null;
+    public Observable<Boolean> deleteItem(@NonNull Phone phone) {
+        final Firebase deleteRef = getFirebase().child(phone.getKey());
+        return Observable.create(subscriber -> {
+            final Firebase.CompletionListener completionListener = (error, firebase) -> {
+                if (subscriber.isUnsubscribed()) return;
+                if (error != null) {
+                    subscriber.onError(new FirebaseException(error));
+                } else {
+                    subscriber.onNext(true);
+                    subscriber.onCompleted();
+                }
+            };
+            deleteRef.removeValue(completionListener);
+        });
     }
 
     public Observable<List<String>> getModelSuggestionsByBrand(@NonNull final String brand,

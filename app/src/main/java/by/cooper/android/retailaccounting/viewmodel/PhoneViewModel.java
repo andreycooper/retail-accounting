@@ -2,7 +2,6 @@ package by.cooper.android.retailaccounting.viewmodel;
 
 
 import android.content.Context;
-import android.databinding.BaseObservable;
 import android.databinding.Bindable;
 import android.databinding.ObservableField;
 import android.graphics.Bitmap;
@@ -28,13 +27,8 @@ import org.parceler.Transient;
 import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
 
-import javax.inject.Inject;
-
-import by.cooper.android.retailaccounting.App;
 import by.cooper.android.retailaccounting.R;
 import by.cooper.android.retailaccounting.activity.ScannerActivity;
-import by.cooper.android.retailaccounting.firebase.FirebaseException;
-import by.cooper.android.retailaccounting.firebase.PhonesRepository;
 import by.cooper.android.retailaccounting.firebase.SuggestionReceiver;
 import by.cooper.android.retailaccounting.fragment.BasePhoneFragment;
 import by.cooper.android.retailaccounting.model.Phone;
@@ -42,7 +36,6 @@ import by.cooper.android.retailaccounting.util.DateTimeUtils;
 import by.cooper.android.retailaccounting.util.ModelValidator;
 import by.cooper.android.retailaccounting.util.Objects;
 import by.cooper.android.retailaccounting.util.PhoneModelValidator;
-import dagger.Lazy;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -53,7 +46,7 @@ import static by.cooper.android.retailaccounting.util.PhoneModelValidator.MODEL_
 
 
 @Parcel(Parcel.Serialization.FIELD)
-public class PhoneViewModel extends BaseObservable implements DatePickerDialog.OnDateSetListener {
+public class PhoneViewModel extends BasePhoneViewModel implements DatePickerDialog.OnDateSetListener {
 
     private static final String TAG = "PhoneViewModel";
     private static final String RECEIVE_DATE_PICKER_TAG = "ReceiveDateTimePicker";
@@ -69,14 +62,6 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     public ObservableField<String> modelError = new ObservableField<>();
     @Bindable
     public ObservableField<String> imeiError = new ObservableField<>();
-
-    @Inject
-    @Transient
-    Lazy<Context> mLazyContext;
-
-    @Inject
-    @Transient
-    Lazy<PhonesRepository> mLazyRepository;
 
     @Transient
     WeakReference<BasePhoneFragment> mFragmentWeakReference;
@@ -137,7 +122,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
         if (mPhone.getSoldDate() > 0) {
             return getConvertedDate(mPhone.getSoldDate());
         } else {
-            return mLazyContext.get().getString(R.string.phone_item_label_not_sold);
+            return mLazyAppContext.get().getString(R.string.phone_item_label_not_sold);
         }
     }
 
@@ -194,10 +179,10 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
         DatePickerDialog dialog;
         if (view.getId() == R.id.receive_date_image_view) {
             mDatePickerTag = RECEIVE_DATE_PICKER_TAG;
-            dialog = getReceivePickerDialog();
+            dialog = getReceivePickerDialog(mPhone, this);
         } else {
             mDatePickerTag = SOLD_DATE_PICKER_TAG;
-            dialog = getSoldPickerDialog();
+            dialog = getSoldPickerDialog(mPhone, this);
         }
         dialog.show(mFragmentWeakReference.get().getFragmentManager(), mDatePickerTag);
     }
@@ -231,8 +216,9 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     }
 
     public void onResume(@NonNull final BasePhoneFragment fragment) {
+        mFragmentWeakReference.clear();
         mFragmentWeakReference = new WeakReference<>(fragment);
-        lazyInject(fragment);
+        lazyInject(fragment.getActivity());
         if (mDatePickerTag != null) {
             DatePickerDialog dialog = (DatePickerDialog) fragment.getFragmentManager()
                     .findFragmentByTag(mDatePickerTag);
@@ -247,7 +233,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
             if (PhoneModelValidator.isCorrectImei(barcode)) {
                 setImei(barcode);
             } else {
-                String error = mLazyContext.get().getString(R.string.phone_error_error_scan_barcode, barcode);
+                String error = mLazyAppContext.get().getString(R.string.phone_error_error_scan_barcode, barcode);
                 showError(error);
             }
         }
@@ -279,11 +265,11 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     public void onActionDoneClick() {
         // TODO: maybe show confirm dialogs?
         ModelValidator<Phone> validator = new PhoneModelValidator();
-        if (validator.isModelValid(mLazyContext.get(), mPhone)) {
+        if (validator.isModelValid(mLazyAppContext.get(), mPhone)) {
             if (TextUtils.isEmpty(mPhone.getKey())) {
-                savePhone();
+                savePhone(mPhone);
             } else {
-                updatePhone();
+                updatePhone(mPhone);
             }
         } else {
             brandError.set(validator.getErrorsMap().get(BRAND_ERROR));
@@ -293,8 +279,10 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
     }
 
     public void onActionDeleteClick() {
-        // TODO: show dialog to confirm delete phone
-
+        if (!TextUtils.isEmpty(mPhone.getKey())) {
+            // TODO: maybe show SnackBar with cancelation
+            getDeletePhoneDialog(mFragmentWeakReference.get().getActivity(), mPhone).show();
+        }
     }
 
     @Override
@@ -310,6 +298,34 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
         }
     }
 
+    @Override
+    protected void savePhoneDone(Phone phone) {
+        Log.d(TAG, "Saved phone: " + phone);
+        mFragmentWeakReference.get().getActivity().onBackPressed();
+    }
+
+    @Override
+    protected void updatePhoneDone(Phone phone) {
+        Log.d(TAG, "Updated phone: " + phone);
+        mFragmentWeakReference.get().getActivity().onBackPressed();
+    }
+
+    @Override
+    protected void deletePhoneDone(Phone phone) {
+        Log.d(TAG, "Deleted phone: " + phone);
+        mFragmentWeakReference.get().getActivity().onBackPressed();
+    }
+
+    @Override
+    protected void showError(@NonNull String error) {
+        View rootView = mFragmentWeakReference.get().getView();
+        if (rootView != null) {
+            Snackbar.make(rootView, error, Snackbar.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(mLazyAppContext.get(), error, Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void setImei(@NonNull String imei) {
         imeiError.set(null);
         mPhone.setImei(imei);
@@ -319,81 +335,7 @@ public class PhoneViewModel extends BaseObservable implements DatePickerDialog.O
 
     private String getConvertedDate(final long millis) {
         return DateTimeUtils.convertDateMillisToPattern(DateTimeZone.UTC.convertUTCToLocal(millis),
-                mLazyContext.get().getString(R.string.phone_date_pattern));
-    }
-
-    private void inject(Context context) {
-        App.get(context).getPhonesComponent().inject(this);
-    }
-
-    private void lazyInject(BasePhoneFragment fragment) {
-        if (mLazyContext == null || mLazyRepository == null) {
-            inject(fragment.getActivity());
-        }
-    }
-
-    private void savePhone() {
-        mLazyRepository.get().saveItem(mPhone).subscribe(isSaved -> {
-            if (isSaved) {
-                mFragmentWeakReference.get().getActivity().onBackPressed();
-            } else {
-                String error = mLazyContext.get()
-                        .getString(R.string.phone_error_already_exists, mPhone.getImei());
-                showError(error);
-            }
-        }, this::showThrowableError);
-    }
-
-    private void updatePhone() {
-        mLazyRepository.get().updateItem(mPhone.getKey(), mPhone).subscribe(isSaved -> {
-            if (isSaved) {
-                mFragmentWeakReference.get().getActivity().onBackPressed();
-            }
-        }, this::showThrowableError);
-    }
-
-    @NonNull
-    private String getFirebaseErrorString(FirebaseException ex) {
-        return mLazyContext.get().getString(R.string.phone_error_firebase_exception,
-                ex.getFirebaseError().getDetails());
-    }
-
-    private void showThrowableError(Throwable throwable) {
-        if (throwable instanceof FirebaseException) {
-            String error = getFirebaseErrorString((FirebaseException) throwable);
-            showError(error);
-        }
-    }
-
-    private void showError(@NonNull String error) {
-        View rootView = mFragmentWeakReference.get().getView();
-        if (rootView != null) {
-            Snackbar.make(rootView, error, Snackbar.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(mLazyContext.get(), error, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private DatePickerDialog getReceivePickerDialog() {
-        DateTime receiveDateTime = new DateTime(DateTimeZone.UTC
-                .convertUTCToLocal(mPhone.getReceiveDate()));
-        DatePickerDialog dialog = DatePickerDialog.newInstance(this,
-                receiveDateTime.getYear(),
-                receiveDateTime.getMonthOfYear() - 1,
-                receiveDateTime.getDayOfMonth());
-        dialog.setMaxDate(DateTimeUtils.getCalendarInLocal());
-        return dialog;
-    }
-
-    private DatePickerDialog getSoldPickerDialog() {
-        DateTime nowLocalDateTime = DateTime.now(DateTimeZone.getDefault());
-        DatePickerDialog dialog = DatePickerDialog.newInstance(this,
-                nowLocalDateTime.getYear(),
-                nowLocalDateTime.getMonthOfYear() - 1,
-                nowLocalDateTime.getDayOfMonth());
-        dialog.setMinDate(DateTimeUtils.getCalendarInLocal(mPhone.getReceiveDate()));
-        dialog.setMaxDate(DateTimeUtils.getCalendarInLocal());
-        return dialog;
+                mLazyAppContext.get().getString(R.string.phone_date_pattern));
     }
 
 }

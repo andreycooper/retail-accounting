@@ -97,6 +97,8 @@ public class HomeActivity extends AppCompatActivity {
                 Snackbar.make(HomeActivity.this.findViewById(R.id.home_layout),
                         HomeActivity.this.getString(R.string.error_loading, error.getDetails()),
                         Snackbar.LENGTH_SHORT).show();
+            } else {
+                // TODO: notify user about unknown error!
             }
         });
     }

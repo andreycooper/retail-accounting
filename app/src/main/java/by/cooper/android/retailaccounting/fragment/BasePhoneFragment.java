@@ -13,7 +13,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -90,8 +89,6 @@ public abstract class BasePhoneFragment extends Fragment implements SuggestionRe
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_done:
-                // TODO: implement DONE button
-                Log.d(LOG_TAG, "DONE clicked!");
                 if (mViewModel != null) {
                     mViewModel.onActionDoneClick();
                 }
