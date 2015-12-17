@@ -95,6 +95,16 @@ public class PhoneViewModel extends BasePhoneViewModel implements DatePickerDial
     }
 
     @Bindable
+    public String getImageUrl() {
+        return mPhone.getImageUrl();
+    }
+
+    @Bindable
+    public boolean isImageVisible() {
+        return !TextUtils.isEmpty(mPhone.getImageUrl());
+    }
+
+    @Bindable
     public String getBrand() {
         return mPhone.getBrand();
     }
@@ -254,7 +264,10 @@ public class PhoneViewModel extends BasePhoneViewModel implements DatePickerDial
                 .filter(imageUrl -> !TextUtils.isEmpty(imageUrl))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(mPhone::setImageUrl,
+                .subscribe(imageUrl -> {
+                            mPhone.setImageUrl(imageUrl);
+                            notifyPropertyChanged(by.cooper.android.retailaccounting.BR.imageUrl);
+                        },
                         throwable -> {
                             Log.e(TAG, throwable.getMessage());
                             throwable.printStackTrace();

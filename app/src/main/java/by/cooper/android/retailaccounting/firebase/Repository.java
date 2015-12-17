@@ -9,10 +9,8 @@ import com.firebase.client.Query;
 import java.util.List;
 
 import by.cooper.android.retailaccounting.model.Commodity;
+import by.cooper.android.retailaccounting.util.UrlContract;
 import rx.Observable;
-
-import static by.cooper.android.retailaccounting.util.UrlContract.IMAGES_URL;
-import static by.cooper.android.retailaccounting.util.UrlContract.SLASH;
 
 
 public abstract class Repository<T extends Commodity> {
@@ -79,7 +77,7 @@ public abstract class Repository<T extends Commodity> {
                 if (error != null) {
                     subscriber.onError(new FirebaseException(error));
                 } else {
-                    subscriber.onNext(IMAGES_URL + SLASH + firebase.getKey());
+                    subscriber.onNext(UrlContract.buildImageUrl(firebase.getKey()));
                 }
             };
             imageRef.setValue(image, completionListener);

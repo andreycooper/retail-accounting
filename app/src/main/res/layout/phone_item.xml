@@ -155,7 +155,8 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:gravity="center_horizontal"
-                        android:src="@drawable/placeholder_phone"/>
+                        android:imageUrl="@{phoneCardViewModel.imageUrl}"
+                        android:placeHolder="@{@drawable/placeholder_phone}"/>
 
                 </LinearLayout>
 

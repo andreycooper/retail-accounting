@@ -61,6 +61,11 @@ public class PhoneCardViewModel extends BasePhoneViewModel {
     }
 
     @Bindable
+    public String getImageUrl() {
+        return mPhone.getImageUrl();
+    }
+
+    @Bindable
     public boolean isPhoneSold() {
         return mPhone.getSoldDate() > Phone.DEFAULT_DATE;
     }

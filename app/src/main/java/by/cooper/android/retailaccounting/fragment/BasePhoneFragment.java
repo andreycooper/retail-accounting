@@ -12,7 +12,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,7 +19,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
@@ -75,7 +73,7 @@ public abstract class BasePhoneFragment extends Fragment implements SuggestionRe
         binding.setPhoneViewModel(mViewModel);
         View rootView = binding.getRoot();
         initUi(rootView);
-        setAdapters(binding);
+        setSuggestionAdapters(binding);
         return rootView;
     }
 
@@ -167,18 +165,6 @@ public abstract class BasePhoneFragment extends Fragment implements SuggestionRe
 
     private void initUi(View rootView) {
         initToolBar(rootView);
-        initImageView(rootView, mPhone);
-    }
-
-    // TODO: move this method into viewModel and create bind adapter "imageUrl"
-    private void initImageView(View rootView, Phone phone) {
-        ImageView imageView = (ImageView) rootView.findViewById(R.id.backdrop);
-        if (phone != null && !TextUtils.isEmpty(phone.getImageUrl())) {
-            imageView.setVisibility(View.VISIBLE);
-            // TODO: load Image from Firebase and decode from Base64;
-        } else {
-            imageView.setVisibility(View.GONE);
-        }
     }
 
     private void initToolBar(View rootView) {
@@ -193,7 +179,7 @@ public abstract class BasePhoneFragment extends Fragment implements SuggestionRe
         }
     }
 
-    private void setAdapters(FragmentPhoneBinding binding) {
+    private void setSuggestionAdapters(FragmentPhoneBinding binding) {
         mBrandSuggestionAdapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_list_item_1, new ArrayList<>());
         mModelSuggestionAdapter = new ArrayAdapter<>(getActivity(),

@@ -41,6 +41,8 @@
                     android:layout_height="match_parent"
                     android:fitsSystemWindows="true"
                     android:scaleType="centerCrop"
+                    android:imageUrl="@{phoneViewModel.imageUrl}"
+                    android:visibility="@{phoneViewModel.imageVisible ? View.VISIBLE : View.GONE}"
                     app:layout_collapseMode="parallax"/>
 
                 <android.support.v7.widget.Toolbar
