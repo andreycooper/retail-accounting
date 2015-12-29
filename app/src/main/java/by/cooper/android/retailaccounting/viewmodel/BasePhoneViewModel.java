@@ -3,6 +3,8 @@ package by.cooper.android.retailaccounting.viewmodel;
 import android.content.Context;
 import android.databinding.BaseObservable;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
+import android.util.Log;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
@@ -19,11 +21,15 @@ import by.cooper.android.retailaccounting.firebase.FirebaseException;
 import by.cooper.android.retailaccounting.firebase.PhonesRepository;
 import by.cooper.android.retailaccounting.model.Phone;
 import by.cooper.android.retailaccounting.util.DateTimeUtils;
+import by.cooper.android.retailaccounting.util.ImageHandler;
 import dagger.Lazy;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 
 public abstract class BasePhoneViewModel extends BaseObservable {
 
+    public static final String TAG = "BasePhoneViewModel";
     @Inject
     @Transient
     Lazy<Context> mLazyAppContext;
@@ -41,27 +47,30 @@ public abstract class BasePhoneViewModel extends BaseObservable {
         }
     }
 
-    @NonNull
-    private String getFirebaseErrorString(@NonNull FirebaseException ex) {
-        return mLazyAppContext.get().getString(R.string.phone_error_firebase_exception,
-                ex.getFirebaseError().getDetails());
-    }
-
-    private void showThrowableError(@NonNull Throwable throwable) {
-        if (throwable instanceof FirebaseException) {
-            String error = getFirebaseErrorString((FirebaseException) throwable);
-            showError(error);
+    protected void updatePhone(@NonNull final Phone phone, @NonNull final ImageHandler imageHandler) {
+        if (TextUtils.isEmpty(imageHandler.getCurrentPhotoPath())) {
+            updatePhone(phone);
         } else {
-            // TODO: show unknown error to user!
+            final PhonesRepository repository = mLazyRepository.get();
+            repository.savePhoneImage(phone, imageHandler)
+                    .subscribeOn(Schedulers.io())
+                    .doOnNext(imageUrl -> Log.d(TAG, "saved image: " + imageUrl))
+                    .filter(imageUrl -> !TextUtils.isEmpty(imageUrl))
+                    .map(imageUrl -> {
+                        phone.setImageUrl(imageUrl);
+                        return phone;
+                    })
+                    .flatMap(repository::updateItem)
+                    .doOnNext(isUpdated -> Log.d(TAG, "phone is updated: " + isUpdated))
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(isUpdated -> onUpdateCompleted(phone, isUpdated), this::showThrowableError);
         }
     }
 
     protected void updatePhone(@NonNull final Phone phone) {
-        mLazyRepository.get().updateItem(phone).subscribe(isSaved -> {
-            if (isSaved) {
-                updatePhoneDone(phone);
-            }
-        }, this::showThrowableError);
+        mLazyRepository.get()
+                .updateItem(phone)
+                .subscribe(isUpdated -> onUpdateCompleted(phone, isUpdated), this::showThrowableError);
     }
 
     protected void deletePhone(@NonNull final Phone phone) {
@@ -73,16 +82,30 @@ public abstract class BasePhoneViewModel extends BaseObservable {
         }, this::showThrowableError);
     }
 
+    protected void savePhone(@NonNull final Phone phone, @NonNull final ImageHandler imageHandler) {
+        if (TextUtils.isEmpty(imageHandler.getCurrentPhotoPath())) {
+            savePhone(phone);
+        } else {
+            final PhonesRepository repository = mLazyRepository.get();
+            repository.savePhoneImage(phone, imageHandler)
+                    .subscribeOn(Schedulers.io())
+                    .doOnNext(imageUrl -> Log.d(TAG, "saved image: " + imageUrl))
+                    .filter(imageUrl -> !TextUtils.isEmpty(imageUrl))
+                    .map(imageUrl -> {
+                        phone.setImageUrl(imageUrl);
+                        return phone;
+                    })
+                    .flatMap(repository::saveItem)
+                    .doOnNext(isSaved -> Log.d(TAG, "phone is saved: " + isSaved))
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(isSaved -> onSavedCompleted(phone, isSaved), this::showThrowableError);
+        }
+    }
+
     protected void savePhone(@NonNull final Phone phone) {
-        mLazyRepository.get().saveItem(phone).subscribe(isSaved -> {
-            if (isSaved) {
-                savePhoneDone(phone);
-            } else {
-                String error = mLazyAppContext.get()
-                        .getString(R.string.phone_error_already_exists, phone.getImei());
-                showError(error);
-            }
-        }, this::showThrowableError);
+        mLazyRepository.get()
+                .saveItem(phone)
+                .subscribe(isSaved -> onSavedCompleted(phone, isSaved), this::showThrowableError);
     }
 
     protected MaterialDialog getDeletePhoneDialog(@NonNull Context context, @NonNull final Phone phone) {
@@ -127,4 +150,35 @@ public abstract class BasePhoneViewModel extends BaseObservable {
     protected abstract void updatePhoneDone(Phone phone);
 
     protected abstract void deletePhoneDone(Phone phone);
+
+    private void onSavedCompleted(@NonNull Phone phone, Boolean isSaved) {
+        if (isSaved) {
+            savePhoneDone(phone);
+        } else {
+            String error = mLazyAppContext.get()
+                    .getString(R.string.phone_error_already_exists, phone.getImei());
+            showError(error);
+        }
+    }
+
+    private void onUpdateCompleted(@NonNull Phone phone, Boolean isUpdated) {
+        if (isUpdated) {
+            updatePhoneDone(phone);
+        }
+    }
+
+    @NonNull
+    private String getFirebaseErrorString(@NonNull FirebaseException ex) {
+        return mLazyAppContext.get().getString(R.string.phone_error_firebase_exception,
+                ex.getFirebaseError().getDetails());
+    }
+
+    private void showThrowableError(@NonNull Throwable throwable) {
+        if (throwable instanceof FirebaseException) {
+            String error = getFirebaseErrorString((FirebaseException) throwable);
+            showError(error);
+        } else {
+            // TODO: show unknown error to user!
+        }
+    }
 }

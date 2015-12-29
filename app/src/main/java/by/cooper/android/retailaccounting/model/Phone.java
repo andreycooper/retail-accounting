@@ -157,9 +157,28 @@ public class Phone implements Commodity {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Phone)) return false;
+
+        Phone phone = (Phone) o;
+
+        return getKey().equals(phone.getKey()) && getImei().equals(phone.getImei());
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getKey().hashCode();
+        result = 31 * result + getImei().hashCode();
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "Phone{" +
-                "brand='" + brand + '\'' +
+                "key='" + key + '\'' +
+                ", brand='" + brand + '\'' +
                 ", model='" + model + '\'' +
                 ", count=" + count +
                 ", price=" + price +

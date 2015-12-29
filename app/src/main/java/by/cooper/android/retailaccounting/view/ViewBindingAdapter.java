@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
+import by.cooper.android.retailaccounting.util.ImageHandler;
 import by.cooper.android.retailaccounting.util.glide.Base64Decoder;
 
 public class ViewBindingAdapter {
@@ -25,6 +26,18 @@ public class ViewBindingAdapter {
         }
     }
 
+    @BindingAdapter({"android:imageUrl", "android:localImage"})
+    public static void loadImage(ImageView imageView, String imageUrl, String localImage) {
+        if (TextUtils.isEmpty(localImage)) {
+            loadImage(imageView, imageUrl);
+        } else {
+            Glide.with(imageView.getContext())
+                    .load(ImageHandler.FILE_SCHEME + localImage)
+                    .diskCacheStrategy(DiskCacheStrategy.RESULT)
+                    .into(imageView);
+        }
+    }
+
     @BindingAdapter({"android:imageUrl", "android:placeHolder"})
     public static void loadImage(ImageView imageView, String imageUrl, Drawable placeHolder) {
         Glide.with(imageView.getContext())
@@ -34,5 +47,18 @@ public class ViewBindingAdapter {
                 .decoder(new Base64Decoder())
                 .diskCacheStrategy(DiskCacheStrategy.RESULT)
                 .into(imageView);
+    }
+
+    @BindingAdapter({"android:imageUrl", "android:localImage", "android:placeHolder"})
+    public static void loadImage(ImageView imageView, String imageUrl, String localImage, Drawable placeHolder) {
+        if (TextUtils.isEmpty(localImage)) {
+            loadImage(imageView, imageUrl, placeHolder);
+        } else {
+            Glide.with(imageView.getContext())
+                    .load(ImageHandler.FILE_SCHEME + localImage)
+                    .placeholder(placeHolder)
+                    .diskCacheStrategy(DiskCacheStrategy.RESULT)
+                    .into(imageView);
+        }
     }
 }

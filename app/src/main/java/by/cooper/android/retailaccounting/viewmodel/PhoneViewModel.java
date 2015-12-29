@@ -4,7 +4,6 @@ package by.cooper.android.retailaccounting.viewmodel;
 import android.content.Context;
 import android.databinding.Bindable;
 import android.databinding.ObservableField;
-import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.text.Editable;
@@ -15,7 +14,6 @@ import android.widget.AdapterView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.firebase.client.utilities.Base64;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
@@ -24,7 +22,6 @@ import org.joda.time.DateTimeZone;
 import org.parceler.Parcel;
 import org.parceler.Transient;
 
-import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
 
 import by.cooper.android.retailaccounting.R;
@@ -36,9 +33,6 @@ import by.cooper.android.retailaccounting.util.DateTimeUtils;
 import by.cooper.android.retailaccounting.util.ModelValidator;
 import by.cooper.android.retailaccounting.util.Objects;
 import by.cooper.android.retailaccounting.util.PhoneModelValidator;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 import static by.cooper.android.retailaccounting.util.PhoneModelValidator.BRAND_ERROR;
 import static by.cooper.android.retailaccounting.util.PhoneModelValidator.IMEI_ERROR;
@@ -51,10 +45,11 @@ public class PhoneViewModel extends BasePhoneViewModel implements DatePickerDial
     private static final String TAG = "PhoneViewModel";
     private static final String RECEIVE_DATE_PICKER_TAG = "ReceiveDateTimePicker";
     private static final String SOLD_DATE_PICKER_TAG = "SoldDateTimePicker";
-    public static final int COMPRESS_QUALITY = 90;
 
+    @NonNull
     Phone mPhone;
     String mDatePickerTag;
+    String mLocalImage;
 
     @Bindable
     public ObservableField<String> brandError = new ObservableField<>();
@@ -94,14 +89,24 @@ public class PhoneViewModel extends BasePhoneViewModel implements DatePickerDial
         mPhone = phone;
     }
 
+    @NonNull
+    public Phone getPhone() {
+        return mPhone;
+    }
+
     @Bindable
     public String getImageUrl() {
         return mPhone.getImageUrl();
     }
 
     @Bindable
+    public String getLocalImage() {
+        return mLocalImage;
+    }
+
+    @Bindable
     public boolean isImageVisible() {
-        return !TextUtils.isEmpty(mPhone.getImageUrl());
+        return !TextUtils.isEmpty(mPhone.getImageUrl()) || !TextUtils.isEmpty(mLocalImage);
     }
 
     @Bindable
@@ -145,9 +150,8 @@ public class PhoneViewModel extends BasePhoneViewModel implements DatePickerDial
                 final SuggestionReceiver suggestionReceiver = mFragmentWeakReference.get();
                 mLazyRepository.get()
                         .getBrandSuggestions(brand)
-                        .subscribe(suggestionReceiver::onBrandsReceived, throwable -> {
-                            suggestionReceiver.clearSuggestions();
-                        });
+                        .subscribe(suggestionReceiver::onBrandsReceived,
+                                throwable -> suggestionReceiver.clearSuggestions());
             }
         }
     }
@@ -166,9 +170,8 @@ public class PhoneViewModel extends BasePhoneViewModel implements DatePickerDial
                 final SuggestionReceiver suggestionReceiver = mFragmentWeakReference.get();
                 mLazyRepository.get()
                         .getModelSuggestionsByBrand(brand, model)
-                        .subscribe(suggestionReceiver::onModelsReceived, throwable -> {
-                            suggestionReceiver.clearSuggestions();
-                        });
+                        .subscribe(suggestionReceiver::onModelsReceived,
+                                throwable -> suggestionReceiver.clearSuggestions());
             }
         }
     }
@@ -249,30 +252,9 @@ public class PhoneViewModel extends BasePhoneViewModel implements DatePickerDial
         }
     }
 
-    public void onThumbnailReceived(@NonNull final Bitmap thumbnail) {
-        // TODO: Show progress while saving image!
-        Observable.just(thumbnail)
-                .map(bitmap -> {
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, COMPRESS_QUALITY, stream);
-                    bitmap.recycle();
-                    return stream.toByteArray();
-                })
-                .map(Base64::encodeBytes)
-                .flatMap(image -> mLazyRepository.get().saveImage(image))
-                .doOnNext(imageUrl -> Log.d(TAG, imageUrl))
-                .filter(imageUrl -> !TextUtils.isEmpty(imageUrl))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(imageUrl -> {
-                            mPhone.setImageUrl(imageUrl);
-                            notifyPropertyChanged(by.cooper.android.retailaccounting.BR.imageUrl);
-                        },
-                        throwable -> {
-                            Log.e(TAG, throwable.getMessage());
-                            throwable.printStackTrace();
-                            thumbnail.recycle();
-                        }, thumbnail::recycle);
+    public void onImageCaptureCompleted(@NonNull final String currentPhotoPath) {
+        mLocalImage = currentPhotoPath;
+        notifyPropertyChanged(by.cooper.android.retailaccounting.BR.localImage);
     }
 
     public void onActionDoneClick() {
@@ -280,9 +262,9 @@ public class PhoneViewModel extends BasePhoneViewModel implements DatePickerDial
         ModelValidator<Phone> validator = new PhoneModelValidator();
         if (validator.isModelValid(mLazyAppContext.get(), mPhone)) {
             if (TextUtils.isEmpty(mPhone.getKey())) {
-                savePhone(mPhone);
+                savePhone(mPhone, mFragmentWeakReference.get().getImageHandler());
             } else {
-                updatePhone(mPhone);
+                updatePhone(mPhone, mFragmentWeakReference.get().getImageHandler());
             }
         } else {
             brandError.set(validator.getErrorsMap().get(BRAND_ERROR));
@@ -330,7 +312,7 @@ public class PhoneViewModel extends BasePhoneViewModel implements DatePickerDial
     }
 
     @Override
-    protected void showError(@NonNull String error) {
+    public void showError(@NonNull String error) {
         View rootView = mFragmentWeakReference.get().getView();
         if (rootView != null) {
             Snackbar.make(rootView, error, Snackbar.LENGTH_SHORT).show();

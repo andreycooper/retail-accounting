@@ -23,11 +23,15 @@ import by.cooper.android.retailaccounting.R;
 import by.cooper.android.retailaccounting.firebase.FirebaseException;
 import by.cooper.android.retailaccounting.firebase.PhonesRepository;
 import by.cooper.android.retailaccounting.firebase.auth.AuthManager;
-import by.cooper.android.retailaccounting.util.Events.PhonesUpdateEvent;
+import by.cooper.android.retailaccounting.util.Events.PhoneAddedEvent;
+import by.cooper.android.retailaccounting.util.Events.PhoneChangedEvent;
+import by.cooper.android.retailaccounting.util.Events.PhoneRemovedEvent;
 import by.cooper.android.retailaccounting.view.PhonesRecyclerAdapter;
 import de.greenrobot.event.EventBus;
 
 public class HomeActivity extends AppCompatActivity {
+
+    public static final String TAG = "HomeActivity";
 
     @Inject
     AuthManager mAuthManager;
@@ -61,9 +65,10 @@ public class HomeActivity extends AppCompatActivity {
         recyclerView.setAdapter(mPhonesRecyclerAdapter);
 
         if (mAuthManager.isLoggedIn()) {
+            Log.d(TAG, "Login is ok!");
             loadItems();
         } else {
-            Log.d("HomeActivity", "Login is failed!");
+            Log.d(TAG, "Login is failed!");
             // TODO: notify user and start login screen
         }
     }
@@ -84,10 +89,22 @@ public class HomeActivity extends AppCompatActivity {
         super.onStop();
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    public void onEventMainThread(PhonesUpdateEvent event) {
+    @SuppressWarnings("unused")
+    public void onEventMainThread(PhoneAddedEvent event) {
+        mPhonesRecyclerAdapter.addPhone(event.getPhone());
         EventBus.getDefault().removeStickyEvent(event);
-        loadItems();
+    }
+
+    @SuppressWarnings("unused")
+    public void onEventMainThread(PhoneChangedEvent event) {
+        mPhonesRecyclerAdapter.changePhone(event.getPhone());
+        EventBus.getDefault().removeStickyEvent(event);
+    }
+
+    @SuppressWarnings("unused")
+    public void onEventMainThread(PhoneRemovedEvent event) {
+        mPhonesRecyclerAdapter.removePhone(event.getPhone());
+        EventBus.getDefault().removeStickyEvent(event);
     }
 
     private void loadItems() {

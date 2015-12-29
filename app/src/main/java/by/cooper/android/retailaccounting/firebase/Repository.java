@@ -73,7 +73,6 @@ public abstract class Repository<T extends Commodity> {
         return Observable.create(subscriber -> {
             final Firebase.CompletionListener completionListener = (error, firebase) -> {
                 if (subscriber.isUnsubscribed()) return;
-
                 if (error != null) {
                     subscriber.onError(new FirebaseException(error));
                 } else {
@@ -82,6 +81,13 @@ public abstract class Repository<T extends Commodity> {
             };
             imageRef.setValue(image, completionListener);
         });
+    }
+
+    public Observable<String> updateImage(@NonNull final String imageUrl, @NonNull final String image) {
+        final Firebase imageRef = mImagesRef.child(UrlContract.getImageKeyFromUrl(imageUrl));
+        // TODO: think how to chain remove the old image and save a new into Observable
+        imageRef.removeValue();
+        return saveImage(image);
     }
 
     public abstract Observable<Boolean> saveItem(@NonNull T object);

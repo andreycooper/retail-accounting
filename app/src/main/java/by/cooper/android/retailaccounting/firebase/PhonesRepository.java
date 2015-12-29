@@ -1,6 +1,8 @@
 package by.cooper.android.retailaccounting.firebase;
 
+import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.firebase.client.DataSnapshot;
@@ -8,13 +10,17 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
+import com.firebase.client.utilities.Base64;
 
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import by.cooper.android.retailaccounting.model.Phone;
+import by.cooper.android.retailaccounting.util.ImageHandler;
+import by.cooper.android.retailaccounting.util.Objects;
 import rx.Observable;
 
 import static by.cooper.android.retailaccounting.dagger.DaggerContract.IMAGES_FB;
@@ -91,7 +97,8 @@ public final class PhonesRepository extends Repository<Phone> {
 
     @Override
     public Observable<Boolean> deleteItem(@NonNull Phone phone) {
-        final Firebase deleteRef = getFirebase().child(phone.getKey());
+        // TODO: also delete image
+        final Firebase deletePhoneRef = getFirebase().child(phone.getKey());
         return Observable.create(subscriber -> {
             final Firebase.CompletionListener completionListener = (error, firebase) -> {
                 if (subscriber.isUnsubscribed()) return;
@@ -102,7 +109,7 @@ public final class PhonesRepository extends Repository<Phone> {
                     subscriber.onCompleted();
                 }
             };
-            deleteRef.removeValue(completionListener);
+            deletePhoneRef.removeValue(completionListener);
         });
     }
 
@@ -158,5 +165,28 @@ public final class PhonesRepository extends Repository<Phone> {
             };
             refQuery.addListenerForSingleValueEvent(new SingleRequest<>(resultReceiver, Phone.class));
         });
+    }
+
+    public Observable<String> savePhoneImage(@NonNull Phone phone, @NonNull ImageHandler imageHandler) {
+        return Observable.just(imageHandler)
+                .filter(handler -> !TextUtils.isEmpty(handler.getCurrentPhotoPath()))
+                .map(ImageHandler::getBitmap)
+                .filter(bitmap -> bitmap != null)
+                .map(bitmap -> {
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, ImageHandler.COMPRESS_QUALITY, stream);
+                    bitmap.recycle();
+                    return stream.toByteArray();
+                })
+                .map(Base64::encodeBytes)
+                .flatMap(imageBase64 -> {
+                    if (TextUtils.isEmpty(phone.getImageUrl())) {
+                        return saveImage(imageBase64);
+                    } else {
+                        return updateImage(phone.getImageUrl(), imageBase64);
+                    }
+                })
+                .doOnNext(imageUrl -> Log.d(TAG, imageUrl))
+                .filter(imageUrl -> !TextUtils.isEmpty(imageUrl) && !Objects.equals(phone.getImageUrl(), imageUrl));
     }
 }

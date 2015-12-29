@@ -1,10 +1,13 @@
 package by.cooper.android.retailaccounting.util;
 
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.firebase.client.AuthData;
 import com.firebase.client.FirebaseError;
+
+import by.cooper.android.retailaccounting.model.Phone;
 
 public final class Events {
     private Events() {
@@ -48,5 +51,47 @@ public final class Events {
 
     public static final class PhonesUpdateEvent {
 
+    }
+
+    public static final class PhoneAddedEvent {
+        @NonNull
+        private final Phone mPhone;
+
+        public PhoneAddedEvent(@NonNull final Phone phone) {
+            mPhone = phone;
+        }
+
+        @NonNull
+        public Phone getPhone() {
+            return mPhone;
+        }
+    }
+
+    public static final class PhoneChangedEvent {
+        @NonNull
+        private final Phone mPhone;
+
+        public PhoneChangedEvent(@NonNull final Phone phone) {
+            mPhone = phone;
+        }
+
+        @NonNull
+        public Phone getPhone() {
+            return mPhone;
+        }
+    }
+
+    public static final class PhoneRemovedEvent {
+        @NonNull
+        private final Phone mPhone;
+
+        public PhoneRemovedEvent(@NonNull final Phone phone) {
+            mPhone = phone;
+        }
+
+        @NonNull
+        public Phone getPhone() {
+            return mPhone;
+        }
     }
 }

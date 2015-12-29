@@ -2,6 +2,7 @@ package by.cooper.android.retailaccounting.view;
 
 import android.databinding.DataBindingUtil;
 import android.databinding.ViewDataBinding;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,10 +42,40 @@ public class PhonesRecyclerAdapter extends RecyclerView.Adapter<PhonesRecyclerAd
         return mPhones.size();
     }
 
-    public void setPhones(List<Phone> phones) {
+    public void setPhones(@NonNull final List<Phone> phones) {
         mPhones.clear();
         mPhones.addAll(phones);
         notifyDataSetChanged();
+    }
+
+    public void addPhone(@NonNull final Phone phone) {
+        if (mPhones.contains(phone)) {
+            return;
+        }
+        final int countPhones = mPhones.size();
+        if (mPhones.add(phone)) {
+            notifyItemInserted(countPhones);
+        }
+    }
+
+    public void removePhone(@NonNull final Phone phone) {
+        for (int i = 0; i < mPhones.size(); i++) {
+            if (mPhones.get(i).equals(phone)) {
+                mPhones.remove(i);
+                notifyItemRemoved(i);
+                break;
+            }
+        }
+    }
+
+    public void changePhone(@NonNull final Phone phone) {
+        for (int i = 0; i < mPhones.size(); i++) {
+            if (mPhones.get(i).equals(phone)) {
+                mPhones.set(i, phone);
+                notifyItemChanged(i);
+                break;
+            }
+        }
     }
 
     public static class PhoneBindingHolder extends RecyclerView.ViewHolder {

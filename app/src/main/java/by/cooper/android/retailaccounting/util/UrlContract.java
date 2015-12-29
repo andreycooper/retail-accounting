@@ -11,8 +11,12 @@ public final class UrlContract {
     public static final String SLASH = "/";
     public static final String JSON_EXTENSION = ".json";
 
-    public static String buildImageUrl(@NonNull final String key){
+    public static String buildImageUrl(@NonNull final String key) {
         return IMAGES_URL + SLASH + key + JSON_EXTENSION;
+    }
+
+    public static String getImageKeyFromUrl(@NonNull final String imageUrl) {
+        return imageUrl.substring(imageUrl.lastIndexOf(SLASH) + 1, imageUrl.indexOf(JSON_EXTENSION));
     }
 
     private UrlContract() {
