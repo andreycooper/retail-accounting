@@ -48,7 +48,7 @@ public class ImageHandler {
         return image;
     }
 
-    public String createImageFileName(@NonNull final Phone phone) {
+    private String createImageFileName(@NonNull final Phone phone) {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd", Locale.US).format(new Date());
         StringBuilder imageFileName = new StringBuilder();
@@ -66,7 +66,7 @@ public class ImageHandler {
     }
 
     @Nullable
-    public BitmapFactory.Options getBitmapOptions(@NonNull File imageFile) {
+    private BitmapFactory.Options getBitmapOptions(@NonNull File imageFile) {
         if (imageFile.length() > 0) {
             BitmapFactory.Options bmOptions = new BitmapFactory.Options();
             bmOptions.inJustDecodeBounds = true;

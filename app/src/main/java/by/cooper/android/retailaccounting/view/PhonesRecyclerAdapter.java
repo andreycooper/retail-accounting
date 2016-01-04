@@ -59,22 +59,18 @@ public class PhonesRecyclerAdapter extends RecyclerView.Adapter<PhonesRecyclerAd
     }
 
     public void removePhone(@NonNull final Phone phone) {
-        for (int i = 0; i < mPhones.size(); i++) {
-            if (mPhones.get(i).equals(phone)) {
-                mPhones.remove(i);
-                notifyItemRemoved(i);
-                break;
-            }
+        int index = mPhones.indexOf(phone);
+        if (index >= 0) {
+            mPhones.remove(index);
+            notifyItemRemoved(index);
         }
     }
 
     public void changePhone(@NonNull final Phone phone) {
-        for (int i = 0; i < mPhones.size(); i++) {
-            if (mPhones.get(i).equals(phone)) {
-                mPhones.set(i, phone);
-                notifyItemChanged(i);
-                break;
-            }
+        int index = mPhones.indexOf(phone);
+        if (index >= 0) {
+            mPhones.set(index, phone);
+            notifyItemChanged(index);
         }
     }
 

@@ -77,6 +77,7 @@ public abstract class Repository<T extends Commodity> {
                     subscriber.onError(new FirebaseException(error));
                 } else {
                     subscriber.onNext(UrlContract.buildImageUrl(firebase.getKey()));
+                    subscriber.onCompleted();
                 }
             };
             imageRef.setValue(image, completionListener);

@@ -37,30 +37,22 @@ public class PhonesModule {
         return new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String previousChild) {
-                Log.d(TAG, "onChildAdded()");
                 final Phone phone = dataSnapshot.getValue(Phone.class);
                 phone.setKey(dataSnapshot.getKey());
-                Log.d(TAG, "Previous child: " + previousChild);
-                Log.d(TAG, "Added phone: " + phone);
                 EventBus.getDefault().postSticky(new PhoneAddedEvent(phone));
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String previousChild) {
-                Log.d(TAG, "onChildChanged()");
                 final Phone phone = dataSnapshot.getValue(Phone.class);
                 phone.setKey(dataSnapshot.getKey());
-                Log.d(TAG, "Previous child: " + previousChild);
-                Log.d(TAG, "Changed phone: " + phone);
                 EventBus.getDefault().postSticky(new PhoneChangedEvent(phone));
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Log.d(TAG, "onChildRemoved()");
                 Phone phone = dataSnapshot.getValue(Phone.class);
                 phone.setKey(dataSnapshot.getKey());
-                Log.d(TAG, "Removed phone: " + phone);
                 EventBus.getDefault().postSticky(new PhoneRemovedEvent(phone));
             }
 
