@@ -1,0 +1,46 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <dimen name="toolbar_elevation">3dp</dimen>
+    <dimen name="app_bar_layout_height">192dp</dimen>
+    <dimen name="app_bar_layout_elevation">3dp</dimen>
+    <dimen name="collapsing_toolbar_layout_title_margin_start">48dp</dimen>
+    <dimen name="collapsing_toolbar_layout_title_margin_end">64dp</dimen>
+
+    <dimen name="floating_action_button_margin">0dp</dimen>
+    <dimen name="floating_action_button_border_width">0dp</dimen>
+    <dimen name="floating_action_button_elevation">6dp</dimen>
+    <dimen name="floating_action_button_pressed_translation_z">12dp</dimen>
+
+    <dimen name="divider_horizontal_height">1dp</dimen>
+    <dimen name="divider_vertical_width">1dp</dimen>
+
+    <dimen name="edit_date_percent_layout_horizontal_margin">2dp</dimen>
+    <dimen name="edit_date_percent_layout_vertical_margin">6dp</dimen>
+    <dimen name="edit_date_text_padding">2dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+
+    <dimen name="login_button_width">240dp</dimen>
+    <dimen name="login_button_height">64dp</dimen>
+    <dimen name="login_button_margin">16dp</dimen>
+    <dimen name="login_progress_margin">16dp</dimen>
+
+    <dimen name="home_activity_horizontal_margin">4dp</dimen>
+    <dimen name="home_activity_vertical_margin">4dp</dimen>
+
+    <dimen name="phone_item_card_view_corner_radius">2dp</dimen>
+    <dimen name="phone_item_card_view_elevation">3dp</dimen>
+    <dimen name="phone_item_title_horizontal_margin">24dp</dimen>
+    <dimen name="phone_item_title_vertical_margin">2dp</dimen>
+    <dimen name="phone_item_title_padding">2dp</dimen>
+    <dimen name="phone_item_title_brand_text_size">20sp</dimen>
+    <dimen name="phone_item_title_model_text_size">18sp</dimen>
+    <dimen name="phone_item_content_layout_padding">6dp</dimen>
+    <dimen name="phone_item_content_label_padding">2dp</dimen>
+    <dimen name="phone_item_content_label_text_size">16sp</dimen>
+    <dimen name="phone_item_image_layout_width">110dp</dimen>
+    <dimen name="phone_item_action_horizontal_margin">8dp</dimen>
+    <dimen name="phone_item_action_padding">6dp</dimen>
+</resources>
